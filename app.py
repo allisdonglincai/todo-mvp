@@ -202,6 +202,43 @@ def add():
     return redirect(url_for("index"))
 
 
+@app.route("/edit/<int:todo_id>", methods=["POST"])
+@login_required
+def edit(todo_id):
+    db = get_db()
+    todo = db.execute(
+        "SELECT id FROM todos WHERE id = ? AND user_id = ?",
+        (todo_id, session["user_id"]),
+    ).fetchone()
+    if todo is None:
+        abort(404)
+    title = request.form.get("title", "")
+    ok, msg = validate_title(title)
+    if not ok:
+        flash(msg)
+        return redirect(url_for("index"))
+    db.execute("UPDATE todos SET title = ? WHERE id = ?", (title.strip(), todo_id))
+    db.commit()
+    flash("已更新")
+    return redirect(url_for("index"))
+
+
+@app.route("/delete/<int:todo_id>", methods=["POST"])
+@login_required
+def delete(todo_id):
+    db = get_db()
+    todo = db.execute(
+        "SELECT id FROM todos WHERE id = ? AND user_id = ?",
+        (todo_id, session["user_id"]),
+    ).fetchone()
+    if todo is None:
+        abort(404)
+    db.execute("DELETE FROM todos WHERE id = ?", (todo_id,))
+    db.commit()
+    flash("已刪除")
+    return redirect(url_for("index"))
+
+
 @app.route("/status/<int:todo_id>", methods=["POST"])
 @login_required
 def cycle_status(todo_id):

@@ -121,6 +121,84 @@ def test_index_requires_login(client):
     assert resp.headers["Location"].endswith("/login")
 
 
+def add_todo(client, title="task"):
+    client.post("/add", data={"title": title})
+    with app_module.app.app_context():
+        row = app_module.get_db().execute(
+            "SELECT id FROM todos ORDER BY id DESC LIMIT 1"
+        ).fetchone()
+    return row["id"]
+
+
+def todo_title(todo_id):
+    with app_module.app.app_context():
+        row = app_module.get_db().execute(
+            "SELECT title FROM todos WHERE id = ?", (todo_id,)
+        ).fetchone()
+    return row["title"] if row else None
+
+
+def test_edit_own_todo(client):
+    register(client)
+    login(client)
+    todo_id = add_todo(client, "old title")
+    resp = client.post(f"/edit/{todo_id}", data={"title": "new title"})
+    assert resp.status_code == 302
+    assert todo_title(todo_id) == "new title"
+
+
+def test_edit_invalid_title_rejected(client):
+    register(client)
+    login(client)
+    todo_id = add_todo(client, "keep me")
+    for bad in ["", "   ", "x" * 201]:
+        resp = client.post(f"/edit/{todo_id}", data={"title": bad})
+        assert resp.status_code == 302
+        assert todo_title(todo_id) == "keep me"
+
+
+def test_edit_others_todo_404(client):
+    register(client, "owner", "password123")
+    login(client, "owner", "password123")
+    todo_id = add_todo(client, "owner task")
+    client.post("/logout")
+
+    register(client, "intruder", "password123")
+    login(client, "intruder", "password123")
+    resp = client.post(f"/edit/{todo_id}", data={"title": "hacked"})
+    assert resp.status_code == 404
+    assert todo_title(todo_id) == "owner task"
+
+
+def test_delete_own_todo(client):
+    register(client)
+    login(client)
+    todo_id = add_todo(client)
+    resp = client.post(f"/delete/{todo_id}")
+    assert resp.status_code == 302
+    assert todo_title(todo_id) is None
+
+
+def test_delete_others_todo_404(client):
+    register(client, "owner", "password123")
+    login(client, "owner", "password123")
+    todo_id = add_todo(client, "owner task")
+    client.post("/logout")
+
+    register(client, "intruder", "password123")
+    login(client, "intruder", "password123")
+    resp = client.post(f"/delete/{todo_id}")
+    assert resp.status_code == 404
+    assert todo_title(todo_id) == "owner task"
+
+
+def test_edit_delete_require_login(client):
+    for path in ["/edit/1", "/delete/1"]:
+        resp = client.post(path, follow_redirects=False)
+        assert resp.status_code == 302
+        assert resp.headers["Location"].endswith("/login")
+
+
 def test_admin_forbidden_for_non_admin(client):
     register(client, "dave", "password123")
     login(client, "dave", "password123")
