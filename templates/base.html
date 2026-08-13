@@ -1,107 +1,138 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-Hant">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>{% block title %}Todo{% endblock %}</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
-</head>
-<body>
-<div id="loading-overlay" role="status" aria-live="polite">
-  <div class="bubble-loader" aria-hidden="true"><span></span><span></span><span></span></div>
-  <p>載入中…</p>
-</div>
-
-<header class="site-header">
-  <div class="bubble-field" aria-hidden="true"><span></span><span></span><span></span></div>
-  <div class="site-header__inner shell{% if not session.user_id %} shell--narrow{% endif %}">
-    <a class="wordmark" href="{{ '/' if session.user_id else '/login' }}">
-      <span class="bubble-mark" aria-hidden="true"></span>
-      Todo
-    </a>
-    {% if session.user_id %}
-    <nav class="site-nav" aria-label="主導覽">
-      {% if session.is_admin %}
-      <a class="site-nav__link{% if request.endpoint == 'admin' %} is-active{% endif %}" href="/admin">管理後台</a>
-      <a class="site-nav__link{% if request.endpoint == 'index' %} is-active{% endif %}" href="/">我的待辦</a>
-      {% endif %}
-      <form action="/logout" method="post">
-        <button type="submit" class="btn btn--soft btn--sm">登出</button>
-      </form>
-    </nav>
-    {% endif %}
-  </div>
-</header>
-
-<div class="shell{% if not session.user_id %} shell--narrow{% elif request.endpoint == 'admin' %} shell--wide{% endif %} page-main">
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-  <ul class="flash-list" role="status" aria-live="polite">
-    {% for category, message in messages %}
-    <li class="flash-{{ category }}">{{ message }}</li>
-    {% endfor %}
-  </ul>
-  {% endif %}
-{% endwith %}
-
-<main>
-  {% block content %}{% endblock %}
-</main>
-</div>
-
-<footer class="site-footer">
-  {% if request.endpoint in ['login', 'register'] %}
-  <p class="footer-line">TODO &middot; 一個小巧、慢慢完成也可以的清單</p>
-  {% else %}
-  <div class="marquee shell">
-    <div class="marquee__track" aria-hidden="true">
-      <span>慢慢做，做完就好 &middot; TODO &middot; 慢慢做，做完就好 &middot; TODO &middot; 慢慢做，做完就好 &middot; TODO &middot; </span>
-      <span>慢慢做，做完就好 &middot; TODO &middot; 慢慢做，做完就好 &middot; TODO &middot; 慢慢做，做完就好 &middot; TODO &middot; </span>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>{% block title %}Todo{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/app.css') }}"
+    />
+  </head>
+  <body>
+    <div id="loading-overlay" role="status" aria-live="polite">
+      <div class="bubble-loader" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </div>
+      <p>載入中…</p>
     </div>
-  </div>
-  {% endif %}
-</footer>
 
-<script>
-(function () {
-  var overlay = document.getElementById("loading-overlay");
-  function showOverlay() {
-    overlay.classList.add("active");
-  }
-  document.addEventListener("submit", showOverlay);
-  document.addEventListener("click", function (e) {
-    if (e.target.closest("a.wordmark")) showOverlay();
-  });
-  window.addEventListener("pageshow", function () {
-    overlay.classList.remove("active");
-  });
+    <header class="site-header">
+      <div class="bubble-field" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </div>
+      <div
+        class="site-header__inner shell{% if not session.user_id %} shell--narrow{% endif %}"
+      >
+        <a class="wordmark" href="{{ '/' if session.user_id else '/login' }}">
+          <span class="bubble-mark" aria-hidden="true"></span>
+          Todo
+        </a>
+        {% if session.user_id %}
+        <nav class="site-nav" aria-label="主導覽">
+          {% if session.is_admin %}
+          <a
+            class="site-nav__link{% if request.endpoint == 'admin' %} is-active{% endif %}"
+            href="/admin"
+            >管理後台</a
+          >
+          <a
+            class="site-nav__link{% if request.endpoint == 'index' %} is-active{% endif %}"
+            href="/"
+            >我的待辦</a
+          >
+          {% endif %}
+          <form action="/logout" method="post">
+            <button type="submit" class="btn btn--soft btn--sm">登出</button>
+          </form>
+        </nav>
+        {% endif %}
+      </div>
+    </header>
 
-  // Bubble-pop: the app's one character moment. Fires once, only when a
-  // status button is about to cycle from "in_progress" into "done" — a
-  // small mint burst plays for ~320ms, then the form submits for real.
-  document.addEventListener("click", function (e) {
-    var btn = e.target.closest(".status-btn.status-in_progress");
-    if (!btn || btn.dataset.popped) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    var form = btn.closest("form");
-    if (!form) return;
-    e.preventDefault();
-    btn.dataset.popped = "1";
-    btn.style.position = "relative";
-    var pop = document.createElement("span");
-    pop.className = "bubble-pop";
-    pop.innerHTML = "<span></span><span></span><span></span>";
-    btn.appendChild(pop);
-    setTimeout(function () {
-      showOverlay();
-      if (form.requestSubmit) form.requestSubmit();
-      else form.submit();
-    }, 320);
-  });
-})();
-</script>
-</body>
+    <div
+      class="shell{% if not session.user_id %} shell--narrow{% elif request.endpoint == 'admin' %} shell--wide{% endif %} page-main"
+    >
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %}
+      <ul class="flash-list" role="status" aria-live="polite">
+        {% for category, message in messages %}
+        <li class="flash-{{ category }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %} {% endwith %}
+
+      <main>{% block content %}{% endblock %}</main>
+    </div>
+
+    <footer class="site-footer">
+      {% if request.endpoint in ['login', 'register'] %}
+      <p class="footer-line">TODO &middot; 一個小巧、慢慢完成也可以的清單</p>
+      {% else %}
+      <div class="marquee shell">
+        <div class="marquee__track" aria-hidden="true">
+          <span
+            >你不用一開始就很厲害，但要開始才有辦法變厲害，跟自己比較就好。
+            &middot;
+            你不用一開始就很厲害，但要開始才有辦法變厲害，跟自己比較就好。&middot;
+          </span>
+          <span
+            >你不用一開始就很厲害，但要開始才有辦法變厲害，跟自己比較就好。
+            &middot;
+            你不用一開始就很厲害，但要開始才有辦法變厲害，跟自己比較就好。&middot;
+          </span>
+        </div>
+      </div>
+      {% endif %}
+    </footer>
+
+    <script>
+      (function () {
+        var overlay = document.getElementById("loading-overlay");
+        function showOverlay() {
+          overlay.classList.add("active");
+        }
+        document.addEventListener("submit", showOverlay);
+        document.addEventListener("click", function (e) {
+          if (e.target.closest("a.wordmark")) showOverlay();
+        });
+        window.addEventListener("pageshow", function () {
+          overlay.classList.remove("active");
+        });
+
+        // Bubble-pop: the app's one character moment. Fires once, only when a
+        // status button is about to cycle from "in_progress" into "done" — a
+        // small mint burst plays for ~320ms, then the form submits for real.
+        document.addEventListener("click", function (e) {
+          var btn = e.target.closest(".status-btn.status-in_progress");
+          if (!btn || btn.dataset.popped) return;
+          if (window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+            return;
+          var form = btn.closest("form");
+          if (!form) return;
+          e.preventDefault();
+          btn.dataset.popped = "1";
+          btn.style.position = "relative";
+          var pop = document.createElement("span");
+          pop.className = "bubble-pop";
+          pop.innerHTML = "<span></span><span></span><span></span>";
+          btn.appendChild(pop);
+          setTimeout(function () {
+            showOverlay();
+            if (form.requestSubmit) form.requestSubmit();
+            else form.submit();
+          }, 320);
+        });
+      })();
+    </script>
+  </body>
 </html>
