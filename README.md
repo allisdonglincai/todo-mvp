@@ -1,0 +1,226 @@
+<a id="readme-top"></a>
+
+<!-- PROJECT SHIELDS -->
+[![Python][python-shield]][python-url]
+[![Flask][flask-shield]][flask-url]
+[![SQLite][sqlite-shield]][sqlite-url]
+[![Docker][docker-shield]][docker-url]
+[![License: TBD][license-shield]](#license)
+
+<br />
+<div align="center">
+  <h3 align="center">Todo App v1 MVP</h3>
+
+  <p align="center">
+    一個 server-rendered 的 Flask + SQLite Todo app，帶登入驗證、per-user 資料、三態狀態與 admin 後台
+    <br />
+    <a href=".scratch/todo-mvp-wrapup/v1-contract.md"><strong>看路由 / schema 契約 »</strong></a>
+    <br />
+    <br />
+    <a href="#usage">Usage</a>
+    &middot;
+    <a href="#architecture--how-this-was-built">Architecture</a>
+    &middot;
+    <a href=".scratch/todo-mvp-wrapup/map.md">Wayfinder Map</a>
+  </p>
+</div>
+
+<!-- TABLE OF CONTENTS -->
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li>
+      <a href="#about-the-project">About The Project</a>
+      <ul>
+        <li><a href="#built-with">Built With</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="#getting-started">Getting Started</a>
+      <ul>
+        <li><a href="#prerequisites">Prerequisites</a></li>
+        <li><a href="#installation">Installation</a></li>
+      </ul>
+    </li>
+    <li><a href="#usage">Usage</a></li>
+    <li><a href="#architecture--how-this-was-built">Architecture &amp; How This Was Built</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#contributing">Contributing</a></li>
+    <li><a href="#license">License</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li><a href="#acknowledgments">Acknowledgments</a></li>
+  </ol>
+</details>
+
+<!-- ABOUT THE PROJECT -->
+## About The Project
+
+一個刻意保持小巧的 Todo app：註冊、登入、per-user 的待辦清單、三態狀態（未處理／進行中／已完成），以及一個 admin 後台可以看到所有帳號跟各自的待辦事項。
+
+這個 repo 真正的目的不是 Todo app 本身，而是拿它當載體，練習「在時間盒內用結構化方式與 agent 協作交付」——用 [wayfinder](.scratch/todo-mvp-wrapup/map.md) 拆解決策、用 4 個獨立的 Claude Code session（1 個 coordinator + backend / frontend / devops 三個 worker）平行開發。細節見下方 [Architecture](#architecture--how-this-was-built)。
+
+刻意不做的事：刪除 todo、正式 WSGI server（目前仍是 Flask dev server）——這些是明確排出範圍的決定，不是漏做。
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+### Built With
+
+* [![Python][Python-badge]][Python-url]
+* [![Flask][Flask-badge]][Flask-url]
+* SQLite3（Python stdlib，無 ORM）
+* [Werkzeug](https://werkzeug.palletsprojects.com/)（密碼雜湊，Flask 本身的依賴，沒有額外裝套件）
+* Docker（單一 `Dockerfile`，沒有 docker-compose）
+* 前端沒有框架：Jinja2 server-rendered template + 一支 vanilla JS 處理 loading 過渡遮罩
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+<!-- GETTING STARTED -->
+## Getting Started
+
+### Prerequisites
+
+* Docker
+  ```sh
+  docker --version
+  ```
+
+### Installation
+
+1. Clone 這個 repo
+   ```sh
+   git clone <this-repo> && cd allis0813-claude-code-basic
+   ```
+2. Build image
+   ```sh
+   docker build -t todo-mvp .
+   ```
+3. 帶著三個必要的環境變數啟動（缺任何一個 app 會啟動失敗，不會用假值蓋掉忘記設定的問題）
+   ```sh
+   docker run -d --name todo-mvp \
+     -p 5000:5000 \
+     -e SECRET_KEY=change-me \
+     -e ADMIN_USERNAME=admin \
+     -e ADMIN_PASSWORD=change-me-too \
+     todo-mvp
+   ```
+4. 打開 [http://localhost:5000/](http://localhost:5000/)，未登入會直接被導到 `/login`
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+<!-- USAGE EXAMPLES -->
+## Usage
+
+一般使用者：`/register` 開放自由註冊 → `/login` → 首頁只看得到自己的 todo → 點狀態按鈕在「未處理 → 進行中 → 已完成」之間循環 → `/logout`。
+
+Admin：用啟動時指定的 `ADMIN_USERNAME` / `ADMIN_PASSWORD` 登入，進 `/admin` 可以看到所有已註冊帳號與各自的 todo（含建立時間、狀態）；非 admin 存取這個路由會被拒絕。
+
+| Method | Path | 需要登入 | 需要 admin |
+|---|---|---|---|
+| GET/POST | `/register` | 否 | 否 |
+| GET/POST | `/login` | 否 | 否 |
+| POST | `/logout` | 是 | 否 |
+| GET | `/` | 是 | 否 |
+| POST | `/add` | 是 | 否 |
+| POST | `/status/<int:todo_id>` | 是 | 否 |
+| GET | `/admin` | 是 | 是 |
+
+完整的路由/schema/驗證規則契約在 [`v1-contract.md`](.scratch/todo-mvp-wrapup/v1-contract.md)；本地跑測試：
+
+```sh
+pytest test_app.py
+```
+
+端對端驗證（build → 註冊 → 登入 → 新增 → 三態循環 → admin 檢視 → 重啟後資料仍在）：
+
+```sh
+bash scripts/verify_deploy.sh
+```
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+<!-- ARCHITECTURE -->
+## Architecture & How This Was Built
+
+**執行期**：Flask 單一 process，server-rendered（沒有前後端分離），登入態走 Flask 內建 session，密碼雜湊走 Werkzeug，資料存在同一個 container 裡的 SQLite 檔案。
+
+**開發期**——這是這個專案比較不尋常的地方：v1 的登入/驗證/admin/三態範圍是用 4 個獨立的 Claude Code session 平行開發出來的：
+
+| Session | 負責檔案 | 收斂方式 |
+|---|---|---|
+| `main` / coordinator | 不改程式碼，只 dispatch、驗證、合併 | 對每個 lane 獨立重跑一次檢查，不採信自我回報 |
+| `backend` | `app.py`, `test_app.py` | `/goal` + `pytest` |
+| `frontend` | `templates/`, `static/` | `/goal` + 靜態檢查與瀏覽器操作 |
+| `devops` | `Dockerfile`, `requirements.txt`, `scripts/` | `/goal` + `scripts/verify_deploy.sh` |
+
+三個 worker 各自在獨立的 git worktree（`backend-lane` / `frontend-lane` / `devops-lane` 分支）裡工作，檔案互不重疊，透過 `orca-ide` 收發訊息；main 驗證通過才 `merge --no-ff` 回 `master`。決策記錄、路由契約、驗證腳本都在 [`.scratch/todo-mvp-wrapup/`](.scratch/todo-mvp-wrapup/)：
+
+* [`map.md`](.scratch/todo-mvp-wrapup/map.md) — wayfinder map，所有拍板過的決策
+* [`v1-contract.md`](.scratch/todo-mvp-wrapup/v1-contract.md) — 三個 lane 共用的路由/schema/驗證規則
+* [`coordinator-protocol.md`](.scratch/todo-mvp-wrapup/coordinator-protocol.md) / [`operating-principles.md`](.scratch/todo-mvp-wrapup/operating-principles.md) — main 的 dispatch 流程與四個 session 共同遵守的停止條件
+
+UI 樣式走的是 `hallmark` 產出的一套鎖定 design system（[`design.md`](design.md)：Bubble 主題，pear / sky-cyan / coral 三個 accent），四個頁面共用同一組 token，不是每頁各自亂設計。
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+<!-- ROADMAP -->
+## Roadmap
+
+- [x] Todo CRUD 雛型（新增／查詢／狀態）+ SQLite 持久化
+- [x] 登入 / 註冊 / 登出 + per-user 資料隔離
+- [x] Admin 後台（帳號清單 + 各帳號 todo）
+- [x] 三態狀態、loading 過渡、雙層輸入驗證
+- [x] Docker 端對端驗證腳本
+- [ ] 期限（due date）、標籤 — 曾經在候選清單上，目前沒有排入範圍
+- [ ] 刪除 todo — 明確排除，不在計畫內
+- [ ] 正式 WSGI server（目前仍是 Flask dev server）— 明確決議維持現狀，見 [Ticket 01](.scratch/todo-mvp-wrapup/issues/01-mvp-hardening-scope.md)
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+<!-- CONTRIBUTING -->
+## Contributing
+
+這個 repo 用 [wayfinder](.scratch/todo-mvp-wrapup/map.md) 拆解決策，不是隨手改就送 PR：
+
+1. 先看 `map.md` 的 Destination 跟 Decisions so far，確認要做的事有沒有已經拍過板
+2. 沒有的話，開一張新 ticket 記錄要決策或要做的事（見 `.scratch/todo-mvp-wrapup/issues/`）
+3. 若是分工執行（像這次的 backend/frontend/devops），先讀 [`operating-principles.md`](.scratch/todo-mvp-wrapup/operating-principles.md)：stop condition 用 `/goal` 定義、驗證一律真的跑過一次，不能假設「應該沒問題」
+4. 檔案切分照 lane 走（`app.py` / `templates`+`static` / `Dockerfile`+`requirements.txt`+`scripts`），跨界的需求記錄在 ticket 裡，不要互相直接改對方的檔案
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+<!-- LICENSE -->
+## License
+
+尚未選擇授權條款（no `LICENSE` file yet）。
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+<!-- CONTACT -->
+## Contact
+
+個人練習專案，沒有對外聯絡窗口。有問題先看 [`.scratch/todo-mvp-wrapup/map.md`](.scratch/todo-mvp-wrapup/map.md)——那是這個專案決策脈絡的權威記錄。
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+<!-- ACKNOWLEDGMENTS -->
+## Acknowledgments
+
+* [Getting started with loops](https://www.anthropic.com) / [Loop Engineering](https://addyosmani.com/blog/loop-engineering/) — 這次 4-session AFK dispatch 設計的思維來源
+* [Best-README-Template](https://github.com/othneildrew/Best-README-Template) — 這份 README 的架構範本
+* [Flask](https://flask.palletsprojects.com/) / [Werkzeug](https://werkzeug.palletsprojects.com/) 文件
+* `orca-ide` — 驅動這次 4 個 session 平行協作的 terminal/worktree/orchestration 工具
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+<!-- MARKDOWN LINKS & IMAGES -->
+[python-shield]: https://img.shields.io/badge/python-3.12-blue?style=for-the-badge&logo=python&logoColor=white
+[python-url]: https://www.python.org/
+[flask-shield]: https://img.shields.io/badge/flask-server--rendered-black?style=for-the-badge&logo=flask&logoColor=white
+[flask-url]: https://flask.palletsprojects.com/
+[sqlite-shield]: https://img.shields.io/badge/sqlite3-stdlib%2C%20no%20ORM-003B57?style=for-the-badge&logo=sqlite&logoColor=white
+[sqlite-url]: https://www.sqlite.org/
+[docker-shield]: https://img.shields.io/badge/docker-single%20Dockerfile-2496ED?style=for-the-badge&logo=docker&logoColor=white
+[docker-url]: https://www.docker.com/
+[license-shield]: https://img.shields.io/badge/license-TBD-lightgrey?style=for-the-badge
+[Python-badge]: https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white
+[Flask-badge]: https://img.shields.io/badge/Flask-000000?style=flat&logo=flask&logoColor=white
