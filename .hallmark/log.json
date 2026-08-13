@@ -1,0 +1,12 @@
+[
+  {
+    "date": "2026-08-13",
+    "scope": "app",
+    "macrostructure": "App Shell (Workbench-adjacent)",
+    "theme": "Hum (custom-tuned \"Bubble\")",
+    "theme_axes": "light / rounded-sans / multi (pear-cyan-coral-mint)",
+    "enrichment": "Tier-A CSS floating bubbles",
+    "vibe": "bubble, round, soft, alive",
+    "brief": "Flask Todo app · register/login/list/admin · redesigned as one system via design.md"
+  }
+]

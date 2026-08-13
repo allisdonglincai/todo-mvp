@@ -1,0 +1,10 @@
+{
+  "scanned_at": "2026-08-13",
+  "font_stack": "system-ui inline stack in templates/base.html (no framework)",
+  "palette": "hex custom properties inline in templates/base.html :root",
+  "motion_library": null,
+  "spacing_scale": null,
+  "framework": "Flask (Jinja2 templates), vanilla CSS, no build step",
+  "preserved": [],
+  "introduced": ["design.md system", "tokens.css", "app.css", "macrostructure", "genre + theme", "microinteraction discipline"]
+}

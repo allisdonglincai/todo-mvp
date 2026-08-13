@@ -1,15 +1,23 @@
 {% extends "base.html" %}
 {% block title %}登入 - Todo{% endblock %}
 {% block content %}
-<h1>登入</h1>
-<form action="/login" method="post">
-  <label for="username">帳號</label>
-  <input type="text" id="username" name="username" autocomplete="username" required>
-
-  <label for="password">密碼</label>
-  <input type="password" id="password" name="password" autocomplete="current-password" required>
-
-  <p><button type="submit">登入</button></p>
-</form>
-<p>還沒有帳號？<a href="/register">註冊</a></p>
+<div class="auth-wrap">
+  <div class="bubble-field" aria-hidden="true"><span></span><span></span><span></span></div>
+  <div class="auth-card">
+    <h1>登入</h1>
+    <p class="auth-card__lede">回來繼續你的待辦事項。</p>
+    <form action="/login" method="post">
+      <div class="field">
+        <label for="username">帳號</label>
+        <input type="text" id="username" name="username" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label for="password">密碼</label>
+        <input type="password" id="password" name="password" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="btn btn--pear btn--full">登入</button>
+    </form>
+    <p class="auth-card__foot">還沒有帳號？<a href="/register">註冊一個</a></p>
+  </div>
+</div>
 {% endblock %}

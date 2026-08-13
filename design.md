@@ -1,0 +1,146 @@
+# Design — Todo (Bubble)
+
+A locked design system for this app. Every page redesign reads this file before
+emitting code. Do not regenerate per page — extend or amend this file when the
+system needs to grow.
+
+Produced by `hallmark redesign templates/ --mood bubble` on 2026-08-13.
+This is a small Flask CRUD app (register / login / todo list / admin), not a
+marketing site — every page is an **app page**. The multi-page rule applies:
+consistency wins over per-page variety. All four templates share one header,
+one footer voice, one token set.
+
+## Genre
+playful
+
+## Theme
+**Hum** (catalog) — the playful genre's only catalog theme, tuned toward a
+"soft, round, alive" **Bubble** register: cream paper, three accents (pear ·
+sky-cyan · coral) plus a mint success colour, rounded-sans type, big radii,
+soft lifting shadows, one small reacting mark (the bubble beside the
+wordmark), a bubble-pop micro-celebration when a todo is completed.
+
+- Paper band: light (cream, `L 97%`)
+- Display style: rounded-sans (Plus Jakarta Sans)
+- Accent hue: multi (pear `H 95` / cyan `H 235` / coral `H 18` / mint `H 150`)
+
+## Macrostructure family
+
+This app has no marketing pages, so the landing-page macrostructure catalog
+doesn't apply directly. Every page uses the same **App Shell** — a
+Workbench-adjacent, function-first shape: fixed-voice header, single-column
+content well (max 640px, widens to a 2-up card grid only on the admin
+roster), no hero, no marketing copy.
+
+- Utility pages (todo list, admin roster): App Shell + card-list body.
+- Auth pages (login, register): App Shell + a single off-centre auth card,
+  no page nav (user isn't signed in yet).
+
+## Theme
+- `--color-paper`      oklch(97% 0.012 95)   cream
+- `--color-paper-2`    oklch(94% 0.016 95)   tinted band
+- `--color-paper-3`    oklch(91% 0.020 95)   deeper hover
+- `--color-ink`        oklch(20% 0.012 250)
+- `--color-ink-2`      oklch(40% 0.014 250)  secondary text
+- `--color-ink-3`      oklch(56% 0.012 250)  muted / timestamps
+- `--color-rule`       oklch(88% 0.018 95)
+- `--color-accent`     oklch(86% 0.18 95)    pear — primary action
+- `--color-accent-2`   oklch(66% 0.18 235)   sky-cyan — links / in-progress
+- `--color-accent-3`   oklch(68% 0.24 18)    coral — danger / one pop moment
+- `--color-mint`       oklch(80% 0.16 150)   success / done
+- `--color-lavender`   oklch(74% 0.16 305)   admin accent (sparing)
+- `--color-focus`      oklch(60% 0.18 235)
+
+## Typography
+- Display: Plus Jakarta Sans, weight 700, style normal
+- Body:    Plus Jakarta Sans, weight 400 (500 for emphasis)
+- Mono:    JetBrains Mono, weight 400/500 — timestamps + task-count chip only
+- CJK fallback: Noto Sans TC (the UI copy is Traditional Chinese; Plus Jakarta
+  Sans has no Han coverage, so Noto Sans TC — a compatible rounded-humanist
+  register — carries every CJK glyph)
+- Display tracking: -0.02em
+- Type scale anchor: 1.25 ratio, 16px body
+
+## Spacing
+4-point named scale, values in `tokens.css`. Pages use named tokens
+(`var(--space-md)`), never raw values.
+
+## Motion
+- Easings: `--ease-out`, `--ease-in`, `--ease-in-out` (state), `--ease-spring`
+  (card lift only), `--ease-snap` (button press)
+- Reveal pattern: none on page load (a CRUD app doesn't need entrance
+  choreography) — motion is reserved for direct-response feedback (button
+  press, card hover, status change)
+- Character moment: a small pear-yellow bubble beside the wordmark pulses
+  gently at rest; when a todo is marked "done" it bursts into three small
+  bubbles (mint) from the status button and fades — the app's one moment of
+  delight
+- Reduced-motion fallback: opacity-only, ≤150ms; the character mark stops
+  pulsing; the bubble-pop is skipped entirely
+
+## Microinteractions stance
+- Silent success — saving a todo, cycling its status: no toast, the UI
+  update *is* the confirmation
+- Flash messages (from the Flask backend) render as rounded pills instead of
+  a bare list — errors in coral, confirmations in mint
+- Hover delay 800ms / focus delay 0ms on anything with a tooltip (none yet)
+- Optimistic-feel button press: the primary button's coloured edge shrinks on
+  `:active`, like a physical push
+
+## CTA voice
+- Primary CTA: `.btn--pear` push style — solid pear fill, a solid colour
+  edge (not a blurred shadow) + soft cast shadow, lifts on hover, presses
+  down on active
+- Secondary CTA: `.btn--soft` — flat tinted fill, no edge
+- Destructive / sign-out: `.btn--soft` in neutral ink, never coral (signing
+  out isn't destructive)
+
+## Per-page allowances
+- All pages: typography + the shared component system (buttons, cards,
+  status pills, the bubble mark). No enrichment beyond Tier-A CSS bubble
+  shapes (decorative, ≤ 3 per page, low opacity, purely atmospheric).
+- Auth pages may show the floating-bubble background treatment behind the
+  card; the todo list and admin roster keep it to a single quiet cluster
+  behind the header only, so it never competes with task content.
+
+## What pages MUST share
+- The wordmark + bubble mark, identical placement, identical pulse.
+- The accent palette and its semantic mapping (pear = primary action, cyan =
+  in-progress / links, coral = danger / the one pop moment, mint = done /
+  success).
+- The button system verbatim (`.btn`, `.btn--pear`, `.btn--soft`,
+  `.btn--outline`).
+- Card radius (20px), pill radius (999px), input radius (12px).
+- The header voice (N7 Brutal-slab, rounded variant) and footer voice
+  (Ft8 marquee on utility pages; a quiet single line on auth pages).
+
+## What pages MAY differ on
+- Content width (todo list / admin stay at a centred 640–920px well; auth
+  pages narrow to a 400px card).
+- Footer treatment (full marquee vs. quiet single line) — both share type,
+  colour, and the middot separator.
+- Admin roster uses the cyan tint for its cards (viewing *other* users' data)
+  where the todo list uses plain paper cards (viewing *your own* data).
+
+## Nav + footer archetypes
+- Nav: **N7 Brutal slab**, rounded variant per the playful genre's
+  "acceptable also (rounded)" allowance — full-width coloured band, bold
+  wordmark, no hairline, generous rounded pill actions instead of the sharp
+  brutal edge. `N5 Floating pill` is explicitly banned for the playful genre
+  (fights the register) and was not used.
+- Footer: **Ft8 Marquee scroll** on the todo list + admin roster (a slow,
+  reduced-motion-aware repeating line). Auth pages use a quiet one-line
+  variant instead of the full marquee, since a sign-in screen shouldn't move.
+
+## Enrichment
+Tier-A pure-CSS floating bubbles — flat circles at 6–10% opacity in the
+accent hues, positioned behind the header and (on auth pages) behind the
+card. No illustration library, no SVG import, no photography — the app has
+no product shots to show.
+
+## Exports
+
+### tokens.css
+See [`static/css/tokens.css`](static/css/tokens.css) — the canonical token
+file every template links to. Not duplicated here to avoid drift between two
+copies of the same values.
