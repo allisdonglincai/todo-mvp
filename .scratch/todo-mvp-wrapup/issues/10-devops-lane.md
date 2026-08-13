@@ -1,7 +1,7 @@
 Type: task
 Mode: execution
 Lane: devops
-Status: claimed
+Status: resolved
 
 開工前先讀 [operating-principles.md](../operating-principles.md)（stop conditions/cost ceilings、切勿假設應該沒問題、worktree 隔離規則、SOLID/KISS）與 [v1-contract.md](../v1-contract.md)（環境變數、驗證流程的權威定義）。
 
@@ -66,3 +66,23 @@ EXIT CODE: 1
 **下一步**：不需要重新 dispatch devops——腳本已依 v1-contract 的最終路由/欄位契約寫好，backend lane 完成後不用改腳本，直接重跑 `scripts/verify_deploy.sh` 即可驗證完整流程。因為卡住原因是跨 lane 依賴（非 devops 自身重試能解決的失敗），依 operating-principles 的 cost ceiling 原則沒有繼續耗用 `/goal` 的 6 次嘗試去撞同一個因 backend 未完成而必然出現的 404。
 
 **Status 說明**：dispatch 訊息原本要求完成後設 `Status: resolved`，但這裡刻意沒有照做——ticket 本身的 `/goal` 目標是「腳本跑起來 exit code 0」，目前是 `exit 1`（原因如上，卡在 backend），不算達成。且依 `coordinator-protocol.md`「兩層驗證」，`Status: resolved` 應該是 main 自己重跑腳本驗證通過後才標記，devops 自己標 resolved 等於球員兼裁判。Status 維持 `claimed`；等 backend lane 的 Answer 填好、`app.py` 換成 v1 路由後，重跑本腳本（不用改腳本本身）即可轉 `resolved`。
+
+### Main 第二層驗證（獨立重跑，非採信自我陳述）
+
+三個 lane 都合併回 master 後（backend `647337b`、frontend `4f9e3d2`、devops `b5be3f1`），main 在 master 主 checkout 直接執行 `bash scripts/verify_deploy.sh`（未經任何修改，沿用 devops 寫的原始腳本）：
+
+```
+==> 1/6 docker build -t todo-mvp .
+...
+==> 2/6 start container, wait for readiness
+==> 3/6 curl flow: register -> login -> add todo -> cycle status x3 -> logout
+==> 4/6 admin login -> GET /admin shows test user + todo
+==> 5/6 docker restart -> re-login -> confirm data persisted
+==> 6/6 cleanup (handled by trap on exit)
+PASS: full deploy verification flow succeeded
+EXIT_CODE=0
+```
+
+6 個步驟全綠，`docker ps -a` 確認 trap 已清掉 `todo-mvp-verify` container，無殘留。這次執行用的是三個 lane 合併後的真實 `app.py` + `templates/`（不是 devops 自己 worktree 裡的舊版），也是這一輪唯一一次端對端跑通完整流程——順便驗證了 [Ticket 11](11-backend-lane.md) pytest 用 `DictLoader` stub 沒覆蓋到的「backend context 變數與 frontend 真實樣板實際搭配」這塊，沒有出現落差。
+
+確認通過，`Status: resolved`。這也是 [v1-contract.md](../v1-contract.md) 最後一節「Verify 用的完整流程」在 master 上的最終確認——三個 lane 合併 + 這次全綠，這一輪 v1 MVP dispatch 正式結束。
