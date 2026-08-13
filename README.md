@@ -1,11 +1,9 @@
-<a id="readme-top"></a>
-
 <!-- PROJECT SHIELDS -->
 [![Python][python-shield]][python-url]
 [![Flask][flask-shield]][flask-url]
 [![SQLite][sqlite-shield]][sqlite-url]
 [![Docker][docker-shield]][docker-url]
-[![License: TBD][license-shield]](#license)
+[![License: MIT][license-shield]](LICENSE)
 
 <br />
 <div align="center">
@@ -35,7 +33,6 @@
         <li><a href="#built-with">Built With</a></li>
       </ul>
     </li>
-    <li><a href="#features">Features</a></li>
     <li>
       <a href="#getting-started">Getting Started</a>
       <ul>
@@ -62,120 +59,17 @@
 
 刻意不做的事：刪除 todo、正式 WSGI server（目前仍是 Flask dev server）——這些是明確排出範圍的決定，不是漏做。
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 ### Built With
 
 [![Python][Python-badge]][Python-url] [![Flask][Flask-badge]][Flask-url]
 
 一張圖看懂技術棧與請求怎麼流動：使用者的請求進到單一 Flask process，用 Werkzeug 做密碼雜湊、Flask session 記登入態，樣板用 Jinja2 server-rendered、靜態資源是 `hallmark` 產出的 Bubble design system；資料落地在同一個 container 裡的 SQLite（stdlib，無 ORM）；整包用單一 `Dockerfile` 部署，啟動時吃三個必要環境變數。
 
-```mermaid
-flowchart TB
-    User(["使用者 / Admin<br/>瀏覽器"])
-    Env{{"環境變數（必要）<br/>SECRET_KEY・ADMIN_USERNAME・ADMIN_PASSWORD"}}
-
-    User <-->|"HTTP 請求 / HTML 回應"| Routes
-
-    subgraph Docker["Docker Container（單一 Dockerfile）"]
-        direction TB
-
-        subgraph Flask["Flask App － 單一 process，server-rendered"]
-            direction TB
-            Routes["路由層<br/>/register · /login · /logout<br/>/ · /add · /status/:id · /admin"]
-            Session["Flask Session<br/>登入狀態"]
-            Hash["Werkzeug<br/>密碼雜湊"]
-            Templates["Jinja2 Templates<br/>base / index / login / register / admin"]
-            Static["static/css<br/>tokens.css + app.css<br/>(Bubble design system)"]
-        end
-
-        DB[("SQLite3<br/>stdlib，無 ORM<br/>users・todos")]
-    end
-
-    Routes --> Session
-    Routes --> Hash
-    Routes -- "render_template" --> Templates
-    Templates -. "引用" .-> Static
-    Routes -- "讀 / 寫" --> DB
-    Env -. "啟動時注入" .-> Routes
-
-    classDef pear fill:#F7E17E,stroke:#B98A2E,color:#20171B;
-    classDef cyan fill:#8FD3F4,stroke:#1E6FA8,color:#101A22;
-    classDef coral fill:#F4A6A0,stroke:#B8453D,color:#221211;
-    classDef mint fill:#B8E3C7,stroke:#2E8B57,color:#0F1F16;
-    classDef neutral fill:#F5F0E1,stroke:#8A7F63,color:#1C1A16;
-
-    class Routes cyan
-    class Session,Hash neutral
-    class Templates,Static pear
-    class DB mint
-    class Env coral
-    class User neutral
-```
+<p align="center">
+  <img src="assets/architecture.png" alt="Todo App Architecture / Tech Stack 圖：瀏覽器直接請求單一 Flask process，經 Werkzeug 密碼雜湊與 Flask Session 驗證後，由 Jinja2 render_template 產生 HTML，靜態資源為 Bubble design system；資料讀寫 SQLite3；整包包在單一 Dockerfile 的 Docker Container 裡，啟動時注入三個必要環境變數。" width="100%">
+</p>
 
 其餘依賴：SQLite3（Python stdlib，無 ORM）、[Werkzeug](https://werkzeug.palletsprojects.com/)（Flask 本身的依賴，沒有額外裝套件）、Docker（單一 `Dockerfile`，沒有 docker-compose）；前端沒有框架，純 Jinja2 server-rendered template + 一支 vanilla JS 處理 loading 過渡遮罩。
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-<!-- FEATURES -->
-## Features
-
-<table>
-<tr>
-<td width="50%" valign="middle">
-
-### 開放註冊
-
-任何人都能自建帳號——帳號 3–30 碼英數字或底線、密碼至少 8 碼，畫面上直接標出規則；送出後後端會再驗一次，不是只靠前端擋。
-
-[路由契約 →](.scratch/todo-mvp-wrapup/v1-contract.md#輸入驗證規則前端-html5-屬性--後端二次驗證都要)
-
-</td>
-<td width="50%">
-  <img src="assets/register.png" alt="註冊頁，帳號與密碼欄位下方標著格式規則" width="100%" />
-</td>
-</tr>
-<tr>
-<td width="50%" valign="middle">
-
-### 登入保護
-
-沒登入進不了 `/`——每個頁面過場都會先擋一次，登入態走 Flask 內建 session，不是裝飾用的假保護。
-
-[Usage →](#usage)
-
-</td>
-<td width="50%">
-  <img src="assets/login.png" alt="登入頁，帳號密碼表單" width="100%" />
-</td>
-</tr>
-<tr>
-<td width="50%" valign="middle">
-
-### Per-user 三態待辦
-
-新增、查詢都只看得到自己的資料；狀態不是打勾了事，是「未處理 → 進行中 → 已完成」點一下循環一格，三色一眼分辨。
-
-</td>
-<td width="50%">
-  <img src="assets/todos.png" alt="待辦清單頁，四筆待辦分別是已完成、進行中、待處理三種狀態" width="100%" />
-</td>
-</tr>
-<tr>
-<td width="50%" valign="middle">
-
-### Admin 後台
-
-admin 帳號在部署時用環境變數指定，不能自己升級自己；登入後可以看到所有帳號跟各自的待辦，一眼掌握全站狀態。
-
-</td>
-<td width="50%">
-  <img src="assets/admin.png" alt="Admin 後台，並排顯示 admin 與 demo_user 兩個帳號各自的待辦" width="100%" />
-</td>
-</tr>
-</table>
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- GETTING STARTED -->
 ## Getting Started
@@ -208,8 +102,6 @@ admin 帳號在部署時用環境變數指定，不能自己升級自己；登�
    ```
 4. 打開 [http://localhost:5000/](http://localhost:5000/)，未登入會直接被導到 `/login`
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 <!-- USAGE EXAMPLES -->
 ## Usage
 
@@ -239,8 +131,6 @@ pytest test_app.py
 bash scripts/verify_deploy.sh
 ```
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 <!-- ARCHITECTURE -->
 ## Architecture & How This Was Built
 
@@ -263,8 +153,6 @@ bash scripts/verify_deploy.sh
 
 UI 樣式走的是 `hallmark` 產出的一套鎖定 design system（[`design.md`](design.md)：Bubble 主題，pear / sky-cyan / coral 三個 accent），四個頁面共用同一組 token，不是每頁各自亂設計。
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 <!-- ROADMAP -->
 ## Roadmap
 
@@ -277,8 +165,6 @@ UI 樣式走的是 `hallmark` 產出的一套鎖定 design system（[`design.md`
 - [ ] 刪除 todo — 明確排除，不在計畫內
 - [ ] 正式 WSGI server（目前仍是 Flask dev server）— 明確決議維持現狀，見 [Ticket 01](.scratch/todo-mvp-wrapup/issues/01-mvp-hardening-scope.md)
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 <!-- CONTRIBUTING -->
 ## Contributing
 
@@ -289,21 +175,15 @@ UI 樣式走的是 `hallmark` 產出的一套鎖定 design system（[`design.md`
 3. 若是分工執行（像這次的 backend/frontend/devops），先讀 [`operating-principles.md`](.scratch/todo-mvp-wrapup/operating-principles.md)：stop condition 用 `/goal` 定義、驗證一律真的跑過一次，不能假設「應該沒問題」
 4. 檔案切分照 lane 走（`app.py` / `templates`+`static` / `Dockerfile`+`requirements.txt`+`scripts`），跨界的需求記錄在 ticket 裡，不要互相直接改對方的檔案
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 <!-- LICENSE -->
 ## License
 
-尚未選擇授權條款（no `LICENSE` file yet）。
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+Distributed under the MIT License. See [`LICENSE`](LICENSE) for more information.
 
 <!-- CONTACT -->
 ## Contact
 
 個人練習專案，沒有對外聯絡窗口。有問題先看 [`.scratch/todo-mvp-wrapup/map.md`](.scratch/todo-mvp-wrapup/map.md)——那是這個專案決策脈絡的權威記錄。
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
@@ -312,8 +192,6 @@ UI 樣式走的是 `hallmark` 產出的一套鎖定 design system（[`design.md`
 * [Best-README-Template](https://github.com/othneildrew/Best-README-Template) — 這份 README 的架構範本
 * [Flask](https://flask.palletsprojects.com/) / [Werkzeug](https://werkzeug.palletsprojects.com/) 文件
 * `orca-ide` — 驅動這次 4 個 session 平行協作的 terminal/worktree/orchestration 工具
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- MARKDOWN LINKS & IMAGES -->
 [python-shield]: https://img.shields.io/badge/python-3.12-blue?style=for-the-badge&logo=python&logoColor=white
@@ -324,6 +202,6 @@ UI 樣式走的是 `hallmark` 產出的一套鎖定 design system（[`design.md`
 [sqlite-url]: https://www.sqlite.org/
 [docker-shield]: https://img.shields.io/badge/docker-single%20Dockerfile-2496ED?style=for-the-badge&logo=docker&logoColor=white
 [docker-url]: https://www.docker.com/
-[license-shield]: https://img.shields.io/badge/license-TBD-lightgrey?style=for-the-badge
+[license-shield]: https://img.shields.io/badge/license-MIT-yellow?style=for-the-badge
 [Python-badge]: https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white
 [Flask-badge]: https://img.shields.io/badge/Flask-000000?style=flat&logo=flask&logoColor=white
