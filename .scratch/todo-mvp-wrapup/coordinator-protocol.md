@@ -1,20 +1,21 @@
 # Main session（coordinator）操作協議
 
-給負責這一輪 dispatch 的 main session 讀。目標：把 [Ticket 10](issues/10-devops-lane.md)、[Ticket 11](issues/11-backend-lane.md)、[Ticket 12](issues/12-frontend-lane.md) 分派給三個 worker session 各自完成、驗證、收斂，main session 自己不寫 `app.py` / `templates/` / `Dockerfile`。
+給負責這一輪 dispatch 的 main session 讀。**開工前先讀 `operating-principles.md`**——裡面是 stop conditions/cost ceilings、「切勿假設應該沒問題」、獨立任務用 worktree 這三條每個 session 都要遵守的原則，這份文件只講 main 自己的流程。目標：把 [Ticket 10](issues/10-devops-lane.md)、[Ticket 11](issues/11-backend-lane.md)、[Ticket 12](issues/12-frontend-lane.md) 分派給三個 worker session 各自在自己的 worktree 裡完成、驗證、收斂，main session 自己不寫 `app.py` / `templates/` / `Dockerfile`。
 
 ## Terminal handle 對應（已確認，不用重找）
 
-- backend: `term_47efc46a-2cd3-4244-8e7f-294026a4af88`
-- frontend: `term_ab6d2123-1d07-4dd5-b4a7-b3da663f0c0a`
-- devops: `term_14769cdd-745f-4e49-be17-b54635d36fcf`
-- main（就是你自己）: `term_3c510b33-4c33-4664-840c-bebec88dc15f`
+- backend: `term_47efc46a-2cd3-4244-8e7f-294026a4af88` — worktree `/mnt/c/Users/1141201/orca/workspaces/allis0813-claude-code-basic/backend-lane`（分支 `backend-lane`）
+- frontend: `term_ab6d2123-1d07-4dd5-b4a7-b3da663f0c0a` — worktree `/mnt/c/Users/1141201/orca/workspaces/allis0813-claude-code-basic/frontend-lane`（分支 `frontend-lane`）
+- devops: `term_14769cdd-745f-4e49-be17-b54635d36fcf` — worktree `/mnt/c/Users/1141201/orca/workspaces/allis0813-claude-code-basic/devops-lane`（分支 `devops-lane`）
+- main（就是你自己）: `term_3c510b33-4c33-4664-840c-bebec88dc15f` — 留在 master 的主 checkout
 
-三個 tab 標題已經 rename 成 `✳ backend` / `✳ frontend` / `✳ devops`，`orca-ide terminal list --json` 隨時可以重新核對，但正常情況下不需要再猜。
+三個 tab 標題已經 rename 成 `✳ backend` / `✳ frontend` / `✳ devops`，`orca-ide terminal list --json` 隨時可以重新核對。三個 worktree 已經用 `orca-ide worktree create --repo id:7ddf919b-0818-4f43-bcc0-ff18b4f0f7a7` 建好，各自是 master 的獨立分支，正常情況下不需要再猜路徑或重建。
 
 ## 開工前必查（before you start）
 
-1. 上面的 handle 對應如果因為使用者重開視窗而失效，才需要重跑 `orca-ide terminal list --json` 並用 `orca-ide terminal rename` 重新標定
-2. 這個 repo 尚未 `orca repo add` 註冊進 Orca，也沒有建立 orca-managed worktree/branch。目前規劃是靠「檔案切分（見 map Notes 的 Lane 切分規則）」而非 git worktree 隔離三個 lane，因為範圍小、檔案本來就不重疊。如果之後想要真正的 worktree 隔離，要先 `orca-ide repo add --path <this-repo>`，再用 `orca-ide worktree create --agent claude` 幫每個 lane 開獨立 checkout——這是額外的基礎建設，不是這一輪 dispatch 的前提
+1. 上面的 handle/worktree 對應如果因為使用者重開視窗而失效，才需要重跑 `orca-ide terminal list --json` / `orca-ide worktree list --json` 重新核對
+2. dispatch 給每個 lane 時，**要求對方在自己的 worktree 絕對路徑下工作**（見上面對應表），不要讓它在 master 的主 checkout 裡改東西——三個 worktree 是各自獨立的 git checkout，這才是真正的檔案隔離，不是只靠約定
+3. `orca-ide worktree create` 偶爾會回報 `runtime_unavailable` 但實際上已經建立成功（本輪就發生過，多建出兩個重複的 frontend worktree，已用 `worktree rm --force` 清掉）——建立 worktree 後一定要 `worktree list --json` 核對實際狀態，不要只看單次呼叫的回傳值判斷成功與否
 
 ## Stop condition（goal-based，非人工判斷）
 
@@ -31,10 +32,11 @@
 對每個 lane（devops → backend → frontend，順序不重要，三個可以同時發）：
 
 1. **Claim**：在對應 ticket 檔案加一行 `Status: claimed`
-2. **Dispatch**：`orca-ide terminal send --terminal <handle> --text "<ticket 內容 + 檔案路徑 + 該 ticket 的 /goal 指令>" --enter`，或用 `orca-ide orchestration dispatch`（如果已經有 `run-create` 綁定的 Run）
-3. **Wait**：`orca-ide terminal wait --terminal <handle> --for tui-idle`，不要用 sleep 迴圈用猜的
-4. **Verify（maker/checker 分離，第二層）**：worker 回報「`/goal` 通過了」不算數。main session 自己（或另開一個 verify-only 的 subagent）實際重跑一次該 lane 對應的檢查指令（例如 devops lane 就自己執行 `scripts/verify_deploy.sh`），拿到的是指令的 exit code / 實際輸出，不是 worker 的自我陳述
+2. **Dispatch**：`orca-ide terminal send --terminal <handle> --text "<ticket內容 + 你的 worktree 絕對路徑 + 該 ticket 的 /goal 指令 + 記得先讀 operating-principles.md>" --enter`
+3. **Wait**：`orca-ide terminal wait --terminal <handle> --for tui-idle --timeout-ms 600000`（10 分鐘上限，對應 operating-principles.md 的 cost ceiling）。逾時視同這個 lane 卡住，不要無限等，照下一節「邊界」處理
+4. **Verify（maker/checker 分離，第二層）**：worker 回報「`/goal` 通過了」不算數。main session 自己切到該 lane 的 worktree 路徑（或另開一個 verify-only 的 subagent），實際重跑一次該 lane 對應的檢查指令（例如 devops lane 就在 `devops-lane` worktree 下執行 `scripts/verify_deploy.sh`），拿到的是指令的 exit code / 實際輸出，不是 worker 的自我陳述
 5. **Record**：驗證通過才把該 ticket 的 `## Answer` 填上實際結果、`Status: resolved`，並把一行 gist 加進 `map.md` 的 Decisions so far；驗證沒過就把失敗原因寫回 ticket，重新 dispatch 或視情況用 `orca-ide orchestration ask` 把問題丟回對應 lane
+6. **Merge back**：驗證通過後，回到 master 的主 checkout（`/mnt/c/Users/1141201/Documents/allis0813-claude-code-basic`），`git merge --no-ff <lane>-lane` 把該 lane 的 commit 併回 master。三個 lane 都合併、且 [Ticket 01](issues/01-mvp-hardening-scope.md) 的 4 項 phase 1 指標在 master 上重新跑過一次全部通過，這一輪才算真的結束
 
 ## 邊界（AFK 期間不能違反）
 

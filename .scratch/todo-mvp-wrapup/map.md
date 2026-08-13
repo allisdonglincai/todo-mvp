@@ -13,9 +13,10 @@ Label: wayfinder:map
 - 練習重點是「結構化協作」本身，Todo app 只是載體 — 評估收尾/擴充決策時，優先考慮是否服務這個練習目的，而非把 Todo app 當成要打磨的產品
 - 每個 session 遇到需要拍板的問題時使用 `/grilling` 和 `/domain-modeling`
 - **執行覆寫（override "plan don't do"）**：這個 map 從 dispatch 階段開始，ticket 也承載實際執行（不只是決策）——三個 lane ticket（10/11/12）的產出是可執行的驗證腳本，由 main session 透過 orca-ide 直接 dispatch 並收斂結果，而非留給另一個 session 事後施工
-- **Repo 狀態**：本目錄已 `git init`（root commit `1e355f8`），純粹為了讓 orca-ide 的 worktree/repo 相關指令可運作；尚未 `orca repo add` 註冊進 Orca
+- **Repo 狀態**：本目錄已 `git init`（root commit `1e355f8`）並 `orca repo add` 註冊進 Orca（repo id `7ddf919b-0818-4f43-bcc0-ff18b4f0f7a7`）。三個 lane 各自有獨立 git worktree（`backend-lane`/`frontend-lane`/`devops-lane` 分支），詳見 `coordinator-protocol.md` 的 handle/worktree 對應表——這是真正的檔案隔離，不只是約定
 - **Lane 切分規則（by file，非 by role）**：這是 server-rendered 單一 process 的 monolith，沒有真的前後端分離，硬分角色只會讓兩個 lane 搶改同一個檔案。切分依現有檔案結構：backend lane 只碰 `app.py`；frontend lane 只碰 `templates/`（含未來的 `static/`）；devops lane 只碰 `Dockerfile`、`requirements.txt`。任何 lane 需要另一個 lane 範圍內的改動，必須透過 `orca orchestration ask`（必要時 `gate-create`）由 main session 裁決，不可越界直接改
-- **Coordinator 協議**：main session 的 dispatch → wait → verify → record 流程與 AFK 邊界寫在 `coordinator-protocol.md`，每個 session 開工前先讀
+- **獨立任務用 worktree，需要互相檢視進度的任務用 subagent**：backend/frontend/devops 檔案不重疊、只有零星跨 lane 需求，屬於獨立任務，各自開 worktree session；之後若出現需要頻繁互相看到對方進度的任務，改在 main session 內開 Task subagent 處理，不要開成獨立 worktree session（見 `operating-principles.md`）
+- **Coordinator 協議與開工原則**：main session 的 dispatch → wait → verify → record 流程與 AFK 邊界寫在 `coordinator-protocol.md`；stop conditions/cost ceilings 與「切勿假設應該沒問題」寫在 `operating-principles.md`，四個 session（main + 三個 lane）開工前都要先讀後者
 
 ## Decisions so far
 

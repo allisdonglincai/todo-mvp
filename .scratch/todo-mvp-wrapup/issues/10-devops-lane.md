@@ -2,6 +2,12 @@ Type: task
 Mode: execution
 Lane: devops
 
+開工前先讀 [operating-principles.md](../operating-principles.md)（stop conditions/cost ceilings、切勿假設應該沒問題、worktree 隔離規則）。
+
+## Worktree
+
+全部工作在 `/mnt/c/Users/1141201/orca/workspaces/allis0813-claude-code-basic/devops-lane`（分支 `devops-lane`）下進行，不要碰 master 主 checkout。commit 到自己的分支即可，main 驗證通過後會負責合併回 master。
+
 ## Owned files
 
 `Dockerfile`、`requirements.txt`、`scripts/verify_deploy.sh`（新檔案，本 ticket 建立）。不可改 `app.py` 或 `templates/`；若驗證過程中發現需要改動這兩者（例如缺 health endpoint、SQLite 沒有正確持久化），用 `orca orchestration ask` 交給 main session 裁決，不要越界直接改。
