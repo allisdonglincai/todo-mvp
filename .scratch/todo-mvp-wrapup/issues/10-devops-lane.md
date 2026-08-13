@@ -40,9 +40,13 @@ Status: claimed
 
 ## Answer
 
-**腳本路徑**：`scripts/verify_deploy.sh`（devops-lane worktree，已 commit：`ad3417e`）
+**腳本路徑**：`scripts/verify_deploy.sh`（devops-lane worktree，已 commit：`ad3417e`、`6c606d6`）
 
-**內容**：依 v1-contract.md 完整流程實作 6 步驟——`docker build` → 帶 `SECRET_KEY`/`ADMIN_USERNAME`/`ADMIN_PASSWORD` 啟動 container 並等待就緒（用連線是否建立判斷，不綁定特定路由，讓建置/啟動這段不依賴 backend 進度）→ curl 流程（register → login → add → 連續切換狀態三次確認回到 pending，中間也檢查有經過 in_progress/done → logout）→ admin 登入 + `GET /admin` 內容檢查測試帳號與 todo 都出現 → `docker restart` 後重新登入確認資料仍在 → trap 確保不論成敗都 `docker rm -f` 清掉 container。全程用獨立 cookie jar 區分一般使用者與 admin 的 session。
+**內容**：依 v1-contract.md 完整流程實作 6 步驟——`docker build` → 帶 `SECRET_KEY`/`ADMIN_USERNAME`/`ADMIN_PASSWORD` 啟動 container 並等待就緒（用連線是否建立判斷，不綁定特定路由，讓建置/啟動這段不依賴 backend 進度）→ curl 流程（register → login → add → 連續切換狀態三次確認回到 pending → logout）→ admin 登入 + `GET /admin` 內容檢查測試帳號與 todo 都出現 → `docker restart` 後重新登入確認資料仍在 → trap 確保不論成敗都 `docker rm -f` 清掉 container。全程用獨立 cookie jar 區分一般使用者與 admin 的 session。
+
+**兩處硬化（`6c606d6`，寫完後自我 review 抓到的）**：
+1. 狀態切換的驗證改成直接查 container 裡的 sqlite（`docker exec ... python -c "..."` 讀 `todos.status`），不再 grep HTML body 找 `pending`/`in_progress`/`done` 字串——因為 `templates/` 是別的 lane 的檔案，UI 上按鈕文字/CSS class/圖例都可能合法地包含這些字，會導致明明 backend 邏輯正確卻被腳本誤判 FAIL，main 也無法區分是腳本的鍋還是 backend 的鍋。POST 仍然照常打 `/status/<id>`（還是在測真正的路由行為），只是拿 ground truth 驗證換成資料庫而不是不受控的 markup。
+2. `post`/`get_code`/`get_body`/todo_id 查詢原本在 `set -e` + `pipefail` 下，curl 連線失敗或 grep 找不到東西時會讓腳本在賦值那行直接被殺掉，跳過原本設計要印出來的 `FAIL: ...` 標籤，main 會看到不帶原因的中止。已改成 helper 內部自己 `|| code="000"` / `|| true` 接住失敗，讓後面的 `require_code`/`require_eq` 一定有機會印出清楚的失敗原因再 exit 1。
 
 **實際執行輸出**（在 devops-lane worktree、對目前分支上的 `app.py` 執行）：
 
@@ -61,4 +65,4 @@ EXIT CODE: 1
 
 **下一步**：不需要重新 dispatch devops——腳本已依 v1-contract 的最終路由/欄位契約寫好，backend lane 完成後不用改腳本，直接重跑 `scripts/verify_deploy.sh` 即可驗證完整流程。因為卡住原因是跨 lane 依賴（非 devops 自身重試能解決的失敗），依 operating-principles 的 cost ceiling 原則沒有繼續耗用 `/goal` 的 6 次嘗試去撞同一個因 backend 未完成而必然出現的 404。
 
-Status 維持 `claimed`（未達成 exit 0 的目標，不能標 resolved）；等 backend lane 的 Answer 填好、`app.py` 換成 v1 路由後，重跑本腳本即可轉 `resolved`。
+**Status 說明**：dispatch 訊息原本要求完成後設 `Status: resolved`，但這裡刻意沒有照做——ticket 本身的 `/goal` 目標是「腳本跑起來 exit code 0」，目前是 `exit 1`（原因如上，卡在 backend），不算達成。且依 `coordinator-protocol.md`「兩層驗證」，`Status: resolved` 應該是 main 自己重跑腳本驗證通過後才標記，devops 自己標 resolved 等於球員兼裁判。Status 維持 `claimed`；等 backend lane 的 Answer 填好、`app.py` 換成 v1 路由後，重跑本腳本（不用改腳本本身）即可轉 `resolved`。
