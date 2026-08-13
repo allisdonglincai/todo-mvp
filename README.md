@@ -33,6 +33,7 @@
         <li><a href="#built-with">Built With</a></li>
       </ul>
     </li>
+    <li><a href="#features">Features</a></li>
     <li>
       <a href="#getting-started">Getting Started</a>
       <ul>
@@ -43,9 +44,7 @@
     <li><a href="#usage">Usage</a></li>
     <li><a href="#architecture--how-this-was-built">Architecture &amp; How This Was Built</a></li>
     <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
     <li><a href="#acknowledgments">Acknowledgments</a></li>
   </ol>
 </details>
@@ -70,6 +69,64 @@
 </p>
 
 其餘依賴：SQLite3（Python stdlib，無 ORM）、[Werkzeug](https://werkzeug.palletsprojects.com/)（Flask 本身的依賴，沒有額外裝套件）、Docker（單一 `Dockerfile`，沒有 docker-compose）；前端沒有框架，純 Jinja2 server-rendered template + 一支 vanilla JS 處理 loading 過渡遮罩。
+
+<!-- FEATURES -->
+## Features
+
+<table>
+<tr>
+<td width="50%" valign="middle">
+
+### 開放註冊
+
+任何人都能自建帳號——帳號 3–30 碼英數字或底線、密碼至少 8 碼，畫面上直接標出規則；送出後後端會再驗一次，不是只靠前端擋。
+
+[路由契約 →](.scratch/todo-mvp-wrapup/v1-contract.md#輸入驗證規則前端-html5-屬性--後端二次驗證都要)
+
+</td>
+<td width="50%">
+  <img src="assets/register.png" alt="註冊頁，帳號與密碼欄位下方標著格式規則" width="100%" />
+</td>
+</tr>
+<tr>
+<td width="50%" valign="middle">
+
+### 登入保護
+
+沒登入進不了 `/`——每個頁面過場都會先擋一次，登入態走 Flask 內建 session，不是裝飾用的假保護。
+
+[Usage →](#usage)
+
+</td>
+<td width="50%">
+  <img src="assets/login.png" alt="登入頁，帳號密碼表單" width="100%" />
+</td>
+</tr>
+<tr>
+<td width="50%" valign="middle">
+
+### Per-user 三態待辦
+
+新增、查詢都只看得到自己的資料；狀態不是打勾了事，是「未處理 → 進行中 → 已完成」點一下循環一格，三色一眼分辨。
+
+</td>
+<td width="50%">
+  <img src="assets/todos.png" alt="待辦清單頁，四筆待辦分別是已完成、進行中、待處理三種狀態" width="100%" />
+</td>
+</tr>
+<tr>
+<td width="50%" valign="middle">
+
+### Admin 後台
+
+admin 帳號在部署時用環境變數指定，不能自己升級自己；登入後可以看到所有帳號跟各自的待辦，一眼掌握全站狀態。
+
+</td>
+<td width="50%">
+  <img src="assets/admin.png" alt="Admin 後台，並排顯示 admin 與 demo_user 兩個帳號各自的待辦" width="100%" />
+</td>
+</tr>
+</table>
 
 <!-- GETTING STARTED -->
 ## Getting Started
@@ -165,25 +222,10 @@ UI 樣式走的是 `hallmark` 產出的一套鎖定 design system（[`design.md`
 - [ ] 刪除 todo — 明確排除，不在計畫內
 - [ ] 正式 WSGI server（目前仍是 Flask dev server）— 明確決議維持現狀，見 [Ticket 01](.scratch/todo-mvp-wrapup/issues/01-mvp-hardening-scope.md)
 
-<!-- CONTRIBUTING -->
-## Contributing
-
-這個 repo 用 [wayfinder](.scratch/todo-mvp-wrapup/map.md) 拆解決策，不是隨手改就送 PR：
-
-1. 先看 `map.md` 的 Destination 跟 Decisions so far，確認要做的事有沒有已經拍過板
-2. 沒有的話，開一張新 ticket 記錄要決策或要做的事（見 `.scratch/todo-mvp-wrapup/issues/`）
-3. 若是分工執行（像這次的 backend/frontend/devops），先讀 [`operating-principles.md`](.scratch/todo-mvp-wrapup/operating-principles.md)：stop condition 用 `/goal` 定義、驗證一律真的跑過一次，不能假設「應該沒問題」
-4. 檔案切分照 lane 走（`app.py` / `templates`+`static` / `Dockerfile`+`requirements.txt`+`scripts`），跨界的需求記錄在 ticket 裡，不要互相直接改對方的檔案
-
 <!-- LICENSE -->
 ## License
 
 Distributed under the MIT License. See [`LICENSE`](LICENSE) for more information.
-
-<!-- CONTACT -->
-## Contact
-
-個人練習專案，沒有對外聯絡窗口。有問題先看 [`.scratch/todo-mvp-wrapup/map.md`](.scratch/todo-mvp-wrapup/map.md)——那是這個專案決策脈絡的權威記錄。
 
 <!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
