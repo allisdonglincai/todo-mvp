@@ -45,7 +45,11 @@
 
 - **不要重用舊的 `backend-lane`/`frontend-lane` 分支**：這兩個分支停在各自上次 merge 的時間點，master 之後又合併了好幾輪（devops Dockerfile 修復、UI redesign、跑馬燈/footer 修正），這些分支都沒有，直接在上面繼續開發會跟 master 嚴重分岔。從**目前 master HEAD** 開新的 worktree/分支（例如 `backend-lane-crud`/`frontend-lane-crud`），`orca-ide worktree create` 後用 `worktree list --json` 核對實際建立成功（v1 遇過 `runtime_unavailable` 誤報但其實建立成功的狀況）。
 - Owned files 不變：backend = `app.py`、`test_app.py`；frontend = `templates/`、`static/`。
-- 這輪沒有 devops lane。
+- 這輪**沒有 devops ticket**（不改 `Dockerfile`/`requirements.txt`，CRUD 不需要新依賴）——但下面第 5 節的最後一步仍然需要呼叫 devops session，那是「rebuild 部署」的操作性任務，不是「改 devops owned files」的 ticket，兩件事不一樣，不要因為「這輪沒有 devops ticket」就整個跳過 devops session。
+
+### 為什麼合併完不能就結束：container 不會自己感知到 git merge
+
+`todo-mvp-demo` 是一個長期跑著的 container，裡面的程式碼是上次 `docker build` 當下的快照，不會因為 master 多了新 commit 就自動更新。這輪 backend/frontend 兩個 lane 合併進 master 之後，**只要有改到 `app.py`/`templates/`/`static/` 任何一個檔案**，`localhost:5000` 顯示的畫面就會是舊的，直到有人重新 `docker build` + 重啟 container。這件事不能省略，也不是「main 自己 docker build 一下就好」——照 v1 的先例，rebuild/redeploy 屬於 devops 的操作範圍，一律呼叫 devops session 執行（可以是既有的 devops-lane 那個 terminal，只要它還活著、idle 就能重用，不用像 backend/frontend 一樣開新 worktree——**這步驟不改任何檔案，不需要獨立 worktree/分支，只是下指令跑 `docker build`/`docker run`**）。
 
 ## 5. Coordinator 執行清單（AFK 迴圈，骨架照 `coordinator-protocol.md`）
 
@@ -53,7 +57,9 @@
 2. 建兩個新 worktree（見上一節），各自開 terminal 啟動 claude session
 3. Dispatch：把 ticket 內容 + worktree 絕對路徑 + `/goal` 指令 + 「先讀 operating-principles.md」一起送進 terminal，要求用 `/implement` 執行
 4. Claim → Wait → Verify（第二層，不採信自我陳述）→ Record → Merge，同 `coordinator-protocol.md` 的流程
-5. 兩個 lane 都合併後，rebuild `todo-mvp-demo` container，用 orca-ide 瀏覽器自動化對 real container 實測一次 edit/delete 端對端流程
+5. **兩個 lane 都合併回 master 後，一定要接著呼叫 devops session 做 rebuild/redeploy**（不能省略、不能自己 docker build 就當作結束）：
+   - 送指令給 devops terminal：在 **master 主 checkout** 路徑下（不是 devops worktree，這步要 build 的是三個/兩個 lane 合併後的完整版本，只有 master 有）執行 `docker build -t todo-mvp-demo .` → `docker rm -f todo-mvp-demo` → `docker run -d --name todo-mvp-demo -p 5000:5000 -e SECRET_KEY=... -e ADMIN_USERNAME=admin -e ADMIN_PASSWORD=admin_password_123 todo-mvp-demo` → `curl` 確認 container 有正常回應
+   - devops 回報「container 起來了」之後，main 自己再用 `orca-ide` 瀏覽器自動化（`tab create`/`goto`/`eval`，這台機器上 `snapshot`/`screenshot` 會斷線不要用）對 `localhost:5000` 實際跑一次 edit/delete 的完整操作，**確認畫面內容是新版**（例如檢查頁面裡有沒有出現這輪新加的編輯/刪除按鈕，或直接把一筆 todo 編輯/刪除掉確認真的生效），不要只憑 devops 回報的 curl 結果就當作「使用者在瀏覽器看到的東西也更新了」——這正是這次要新增這道步驟的原因：合併「回 git」跟「使用者瀏覽器看到新畫面」是兩件事，中間差一次 rebuild + 重啟
 
 ## 6. 這輪踩過的坑（幫下一個 session 省重新踩雷的時間）
 
