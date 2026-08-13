@@ -2,7 +2,7 @@ Type: task
 Mode: execution
 Lane: frontend
 
-開工前先讀 [operating-principles.md](../operating-principles.md)（stop conditions/cost ceilings、切勿假設應該沒問題、worktree 隔離規則）。
+開工前先讀 [operating-principles.md](../operating-principles.md)（stop conditions/cost ceilings、切勿假設應該沒問題、worktree 隔離規則、SOLID/KISS）與 [v1-contract.md](../v1-contract.md)（路由/template 變數/驗證規則的權威定義）。開發時使用 `/frontend-design:frontend-design`；若這個 session 沒裝這個 plugin，退回用 `better-ui`/`better-layout`/`better-typography`/`better-accessibility`。
 
 ## Worktree
 
@@ -10,24 +10,32 @@ Lane: frontend
 
 ## Owned files
 
-`templates/`（含未來的 `static/`，目前不存在）。不可改 `app.py`、`Dockerfile`、`requirements.txt`；若需要這些檔案改動，用 `orca orchestration ask` 交給 main session 裁決。
+`templates/`、`static/`（新目錄，本 ticket 建立）。不可改 `app.py`、`Dockerfile`、`requirements.txt`；若需要這些檔案改動，用 `orca orchestration ask` 交給 main session 裁決。
 
-## Task
+## Task（見 [Ticket 20](20-v1-mvp-scope-reopen.md) 完整背景）
 
-審查 `templates/index.html`：語意是否正確（表單、checkbox、`{% for %}` 迴圈邏輯與後端欄位對得上）、有沒有殘留的除錯用標記或死程式碼、HTML 是否為合法標記。這個 MVP 沒有獨立前端框架，所以這裡的產出是「審查 + 就地修正」而不是新功能：若發現問題直接在 `templates/index.html` 內修好；若沒問題，在 Answer 記錄審查結論即可，不需要為了有事做而加東西。
+依 [v1-contract.md](../v1-contract.md) 建立/改寫樣板：
+
+1. **`templates/base.html`**：共用 layout，放 loading 遮罩（vanilla JS：監聽全頁所有 `submit`/`click` 事件，觸發時立即顯示全螢幕遮罩+文字，`pageshow` 事件時隱藏，處理瀏覽器上一頁/下一頁的情況）、flash 訊息渲染區塊。其他頁面 `{% extends "base.html" %}`，不要四個頁面各自重複貼一樣的 script/style
+2. **`templates/login.html`**：username/password 表單，導向 `/login`
+3. **`templates/register.html`**：username/password 表單，前端驗證屬性照 contract（`pattern`/`minlength`），導向 `/register`
+4. **`templates/index.html`**：改用 contract 的 `todos`/`username` 變數；原本的 checkbox 換成點擊循環三態的按鈕（表單 POST 到 `/status/<id>`）；新增 todo 輸入框加 `maxlength="200"`；加登出按鈕
+5. **`templates/admin.html`**：依 contract 的 `users` 變數渲染帳號清單，每個帳號下面列出其 `todos`（含 `created_at`/`status`）
+
+這個 MVP 沒有前端框架，所有互動（loading 遮罩、狀態循環按鈕）都是 vanilla JS + 表單 POST，不要引入任何新的 JS 套件或 build 工具。
 
 ## Verification（closed loop）
 
-這個 lane 的任務本質是審查，沒有天生的機器可判斷通過條件，所以借用 backend 既有的迴歸測試當硬指標（唯讀執行 `test_app.py`，不代表擁有它）：
+這個 lane 沒有自己的 pytest（`test_app.py` 屬於 backend），能做的是靜態檢查：
 
 ```
-/goal 修改（或未修改）templates/index.html 後，pytest test_app.py 仍全部通過，且 python3 -c "from html.parser import HTMLParser; HTMLParser().feed(open('templates/index.html').read())" 不拋例外，stop after 3 tries
+/goal 所有 templates/*.html 都能用 Jinja2 Environment 語法解析成功（不是渲染，只驗證語法沒錯）、且用 Python 內建 html.parser 逐一 feed 不拋例外，stop after 3 tries
 ```
 
-`pytest test_app.py` 會間接驗證渲染出來的 HTML 結構（`<li` 數量、`class="done"` 是否出現）沒有被你的修改破壞；`html.parser`（Python 內建，不用裝東西）抓明顯的標記錯誤。若審查後沒改東西，這兩項本來就會過，不用為了跑 `/goal` 硬改。
+backend lane 完成後（看 [Ticket 11](11-backend-lane.md) 的 Answer 是否已填），main 會請你再跑一次 `pytest test_app.py`（唯讀執行，不代表你擁有這個檔案）當作端對端確認；這個依賴關係寫在 `coordinator-protocol.md`，不用自己等，先把樣板做完回報。
 
-回報給 main 之後，main 會**獨立重跑一次上面兩個指令**，不採信這裡的自我陳述——這是第二層驗證，跟 `/goal` 的 evaluator model 是不同的檢查者。
+回報給 main 之後，main 會**獨立重跑一次上面的靜態檢查**，不採信這裡的自我陳述。
 
 ## Answer
 
-（main session dispatch 後，由 frontend lane 回報結果並在此記錄：審查結論、是否有修改）
+（main session dispatch 後，由 frontend lane 回報結果並在此記錄：完成的頁面、審查/驗證結論）

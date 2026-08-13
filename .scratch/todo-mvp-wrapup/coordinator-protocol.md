@@ -1,6 +1,6 @@
 # Main session（coordinator）操作協議
 
-給負責這一輪 dispatch 的 main session 讀。**開工前先讀 `operating-principles.md`**——裡面是 stop conditions/cost ceilings、「切勿假設應該沒問題」、獨立任務用 worktree 這三條每個 session 都要遵守的原則，這份文件只講 main 自己的流程。目標：把 [Ticket 10](issues/10-devops-lane.md)、[Ticket 11](issues/11-backend-lane.md)、[Ticket 12](issues/12-frontend-lane.md) 分派給三個 worker session 各自在自己的 worktree 裡完成、驗證、收斂，main session 自己不寫 `app.py` / `templates/` / `Dockerfile`。
+給負責這一輪 dispatch 的 main session 讀。**開工前先讀 `operating-principles.md`**（stop conditions/cost ceilings、「切勿假設應該沒問題」、獨立任務用 worktree、SOLID/KISS）與 `v1-contract.md`（三個 lane 共用的路由/schema/驗證規則契約，main 不用逐一裁決介面細節，照契約就好）。目標：把 [Ticket 10](issues/10-devops-lane.md)、[Ticket 11](issues/11-backend-lane.md)、[Ticket 12](issues/12-frontend-lane.md)（範圍見 [Ticket 20](issues/20-v1-mvp-scope-reopen.md)）分派給三個 worker session 各自在自己的 worktree 裡完成、驗證、收斂，main session 自己不寫 `app.py` / `templates/` / `Dockerfile`。
 
 ## Terminal handle 對應（已確認，不用重找）
 
@@ -19,7 +19,9 @@
 
 ## Stop condition（goal-based，非人工判斷）
 
-三個 lane ticket 的 `## Answer` 都填好、且 [Ticket 01](issues/01-mvp-hardening-scope.md) 的 4 項 phase 1 指標實際跑過一遍全部通過，才算這一輪結束。不要因為某個 lane「說」它做完了就採信——見下一節。
+三個 lane ticket 的 `## Answer` 都填好、且 [v1-contract.md](v1-contract.md) 最後一節「Verify 用的完整流程」（devops lane 的 `scripts/verify_deploy.sh`）在 master 分支上實際跑過一遍全部通過，才算這一輪結束。不要因為某個 lane「說」它做完了就採信——見下一節。
+
+devops lane 的驗證依賴 backend lane 的路由存在，所以三個 lane 可以同時 dispatch，但**最後的「全部通過」判斷要等 backend 也收斂**——devops 自己回報的中途結果（只測到建置/啟動）不算數。
 
 ## 兩層驗證，不是一層
 
@@ -36,7 +38,7 @@
 3. **Wait**：`orca-ide terminal wait --terminal <handle> --for tui-idle --timeout-ms 600000`（10 分鐘上限，對應 operating-principles.md 的 cost ceiling）。逾時視同這個 lane 卡住，不要無限等，照下一節「邊界」處理
 4. **Verify（maker/checker 分離，第二層）**：worker 回報「`/goal` 通過了」不算數。main session 自己切到該 lane 的 worktree 路徑（或另開一個 verify-only 的 subagent），實際重跑一次該 lane 對應的檢查指令（例如 devops lane 就在 `devops-lane` worktree 下執行 `scripts/verify_deploy.sh`），拿到的是指令的 exit code / 實際輸出，不是 worker 的自我陳述
 5. **Record**：驗證通過才把該 ticket 的 `## Answer` 填上實際結果、`Status: resolved`，並把一行 gist 加進 `map.md` 的 Decisions so far；驗證沒過就把失敗原因寫回 ticket，重新 dispatch 或視情況用 `orca-ide orchestration ask` 把問題丟回對應 lane
-6. **Merge back**：驗證通過後，回到 master 的主 checkout（`/mnt/c/Users/1141201/Documents/allis0813-claude-code-basic`），`git merge --no-ff <lane>-lane` 把該 lane 的 commit 併回 master。三個 lane 都合併、且 [Ticket 01](issues/01-mvp-hardening-scope.md) 的 4 項 phase 1 指標在 master 上重新跑過一次全部通過，這一輪才算真的結束
+6. **Merge back**：驗證通過後，回到 master 的主 checkout（`/mnt/c/Users/1141201/Documents/allis0813-claude-code-basic`），`git merge --no-ff <lane>-lane` 把該 lane 的 commit 併回 master。三個 lane 都合併、且 [v1-contract.md](v1-contract.md) 的完整 verify 流程在 master 上重新跑過一次全部通過，這一輪才算真的結束
 
 ## 邊界（AFK 期間不能違反）
 
