@@ -26,6 +26,7 @@ Label: wayfinder:map
 - ~~[是否繼續擴充範圍，或在目前 scope 結案](issues/02-continue-or-close-scope.md) — 原決議「在目前 scope 結案」，已被 Ticket 20 推翻~~
 - [v1 MVP 範圍重新定義](issues/20-v1-mvp-scope-reopen.md) — 推翻 Ticket 02，正式納入登入/註冊/驗證 + admin 後台 + 三態狀態 + loading + 雙層輸入驗證 + SOLID/KISS 開發原則；細節見 [v1-contract.md](v1-contract.md)
 - [Ticket 12 frontend lane](issues/12-frontend-lane.md) — resolved：五個 templates 依 v1-contract 建立/改寫（commit `f28084e`），main 獨立重跑 Jinja2/html.parser 靜態檢查 exit 0 確認通過，已合併回 master
+- [Ticket 11 backend lane](issues/11-backend-lane.md) — resolved：`app.py` 依 v1-contract 重寫（commit `3e2804b`），main 獨立重跑 `pytest test_app.py`（docker python:3.12-slim）6 passed exit 0 確認通過，已合併回 master。pytest 用 DictLoader stub，未驗證真實樣板搭配，留給 devops `scripts/verify_deploy.sh` 端對端驗證
 
 ## Not yet specified
 
