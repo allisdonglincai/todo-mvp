@@ -78,3 +78,23 @@ main 請獨立重跑上面的靜態檢查指令，不要採信這裡的自我陳
 在 `frontend-lane` worktree 下獨立重寫並執行 Jinja2 `Environment.get_template()` + `html.parser.HTMLParser().feed()` 檢查（未沿用 worker 的腳本），五個 `templates/*.html` 全數 `[OK]`，exit code 0。確認通過，維持 `Status: resolved`。
 
 `pytest test_app.py` 端對端確認待 backend lane（ticket 11）resolved 後再由 main 補跑。
+
+### 追加修復：loading 遮罩卡死（合併後使用者實測發現）
+
+三個 lane 全部合併回 master、v1-contract 端對端驗證通過後，使用者實測 `http://localhost:5000/login` 發現：點擊帳號/密碼 input 就整個卡在全螢幕 loading 遮罩。
+
+**Root cause**：`templates/base.html` 的 `document.addEventListener("click", showOverlay)` 監聽整個 document 的所有 click，沒有篩選是否為真的會導頁的元素，點 input 純 focus 也觸發顯示；遮罩只在 `pageshow`（實際導頁完成）時隱藏，沒有導頁就永遠卡住。
+
+**修復**（frontend-lane commit `e3574a5`）：click 監聽改成只在 `event.target.closest("a[href], button[type=submit], input[type=submit]")` 命中時才 `showOverlay()`；`submit` 監聽不變。修改前已用 `grep -n "<button" templates/*.html` 確認五個 template 的按鈕都明確寫 `type="submit"`，不會漏判。
+
+**Main 第二層驗證**：
+1. 靜態檢查：獨立在 `frontend-lane` worktree 重跑 Jinja2/html.parser 檢查，五個 template 全數 `[OK]`，exit 0
+2. 合併回 master（commit）後，用 `orca-ide` 內建瀏覽器自動化（`tab create`/`goto`/`eval`）對 `localhost:5000` 實際跑一次 `demo-brief.md` 的完整 user flow + admin flow：
+   - 點擊 `/login` 的 username input（純 focus，不送出）→ `overlay.classList.contains('active')` 為 `false`，確認 bug 已修好
+   - 註冊 `demo_user` → 導向 `/login` 並 flash「註冊成功，請登入」→ 登入 → 落地 `/`
+   - 新增 todo「示範待辦事項」→ 顯示「待處理」
+   - 連續點狀態按鈕 3 次 → 待處理 → 進行中 → 已完成 → 待處理（三態循環正確）
+   - 登出 → 導向 `/login`；未登入重新造訪 `/` → 正確導回 `/login`
+   - 以 admin 帳密登入 → `/admin` 正常載入（非 403）→ 頁面內容包含 `demo_user`、其 todo 標題與狀態文字
+
+全數通過，確認合併後的 master 是可以正確跑完整個 demo 流程的。驗證完後把 `todo-mvp-demo` container 用乾淨的環境變數重新起一份（清掉測試帳號/todo），交還一個乾淨狀態給使用者做正式 demo。

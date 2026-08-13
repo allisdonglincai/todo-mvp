@@ -29,6 +29,7 @@ Label: wayfinder:map
 - [Ticket 11 backend lane](issues/11-backend-lane.md) — resolved：`app.py` 依 v1-contract 重寫（commit `3e2804b`），main 獨立重跑 `pytest test_app.py`（docker python:3.12-slim）6 passed exit 0 確認通過，已合併回 master。pytest 用 DictLoader stub，未驗證真實樣板搭配，留給 devops `scripts/verify_deploy.sh` 端對端驗證
 - [Ticket 10 devops lane](issues/10-devops-lane.md) — resolved：`scripts/verify_deploy.sh` 依 v1-contract 完整流程實作，三個 lane 全合併回 master 後 main 在 master 上獨立跑一次，6 步驟全綠 exit 0，container 清理確認無殘留
 - **v1 MVP dispatch 這一輪正式結束**：三個 lane（backend `647337b`/frontend `4f9e3d2`/devops `b5be3f1`）皆已 `--no-ff` 合併回 master，master 上重跑 `scripts/verify_deploy.sh` 全綠，即 [v1-contract.md](v1-contract.md) 最後一節端對端驗證通過
+- **合併後追加修復**：使用者在瀏覽器實測發現 `/login` 點擊 input 就卡在 loading 遮罩（`document.addEventListener('click', showOverlay)` 沒篩選導頁元素）。回派 frontend lane 修復（commit `e3574a5`，篩選成只有 `a[href]`/`button[type=submit]`/`input[type=submit]` 才顯示遮罩），main 靜態檢查 + `orca-ide` 瀏覽器自動化重跑 `demo-brief.md` 完整 user flow + admin flow 全過，已合併回 master 並重建 `todo-mvp-demo` container（乾淨狀態，admin 帳密見 devops verify 腳本同款測試值，實際 demo container 用 `admin`/`admin_password_123`）
 
 ## Not yet specified
 
