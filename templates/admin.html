@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Admin - Todo{% endblock %}
+{% block content %}
+{% set status_labels = {'pending': '待處理', 'in_progress': '進行中', 'done': '已完成'} %}
+<header class="page-header">
+  <h1>Admin 後台</h1>
+  <div class="user-bar">
+    <a href="/">回到 Todo</a>
+    <form action="/logout" method="post">
+      <button type="submit" class="secondary">登出</button>
+    </form>
+  </div>
+</header>
+
+{% for user in users %}
+<section class="user-section">
+  <h2>{{ user.username }}</h2>
+  <p class="todo-time">註冊於 {{ user.created_at }}</p>
+  {% if user.todos %}
+  <ul class="todo-list">
+    {% for todo in user.todos %}
+    <li class="todo-item">
+      <span class="todo-title">{{ todo.title }}</span>
+      <span class="todo-time">{{ todo.created_at }}</span>
+      <span class="status-tag status-{{ todo.status }}">{{ status_labels.get(todo.status, todo.status) }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="empty">沒有待辦事項</p>
+  {% endif %}
+</section>
+{% else %}
+<p class="empty">目前沒有使用者</p>
+{% endfor %}
+{% endblock %}

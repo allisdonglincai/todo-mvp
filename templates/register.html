@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}註冊 - Todo{% endblock %}
+{% block content %}
+<h1>註冊</h1>
+<form action="/register" method="post">
+  <label for="username">帳號</label>
+  <input
+    type="text"
+    id="username"
+    name="username"
+    autocomplete="username"
+    pattern="[A-Za-z0-9_]{3,30}"
+    minlength="3"
+    maxlength="30"
+    title="3–30 字，只能是英數字與底線"
+    required>
+
+  <label for="password">密碼</label>
+  <input
+    type="password"
+    id="password"
+    name="password"
+    autocomplete="new-password"
+    minlength="8"
+    title="至少 8 碼"
+    required>
+
+  <p><button type="submit">註冊</button></p>
+</form>
+<p>已經有帳號？<a href="/login">登入</a></p>
+{% endblock %}

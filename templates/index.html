@@ -1,31 +1,36 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-  <meta charset="UTF-8">
-  <title>Todo</title>
-  <style>
-    body { font-family: sans-serif; max-width: 480px; margin: 40px auto; }
-    li { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
-    li.done span { text-decoration: line-through; color: #888; }
-    form.add { display: flex; gap: 8px; margin-bottom: 16px; }
-    input[type=text] { flex: 1; padding: 6px; }
-  </style>
-</head>
-<body>
+{% extends "base.html" %}
+{% block title %}Todo{% endblock %}
+{% block content %}
+{% set status_labels = {'pending': '待處理', 'in_progress': '進行中', 'done': '已完成'} %}
+<header class="page-header">
   <h1>Todo</h1>
-  <form class="add" action="{{ url_for('add') }}" method="post">
-    <input type="text" name="title" placeholder="新增待辦事項" required>
-    <button type="submit">新增</button>
-  </form>
-  <ul>
-    {% for todo in todos %}
-    <li class="{{ 'done' if todo.done else '' }}">
-      <form action="{{ url_for('toggle', todo_id=todo.id) }}" method="post">
-        <input type="checkbox" onchange="this.form.submit()" {{ 'checked' if todo.done else '' }}>
-      </form>
-      <span>{{ todo.title }}</span>
-    </li>
-    {% endfor %}
-  </ul>
-</body>
-</html>
+  <div class="user-bar">
+    <span>{{ username }}</span>
+    <form action="/logout" method="post">
+      <button type="submit" class="secondary">登出</button>
+    </form>
+  </div>
+</header>
+
+<form action="/add" method="post" class="add-form">
+  <label for="title" class="sr-only">新增待辦事項</label>
+  <input type="text" id="title" name="title" placeholder="新增待辦事項" maxlength="200" required>
+  <button type="submit">新增</button>
+</form>
+
+<ul class="todo-list">
+  {% for todo in todos %}
+  <li class="todo-item">
+    <span class="todo-title">{{ todo.title }}</span>
+    <span class="todo-time">{{ todo.created_at }}</span>
+    <form action="/status/{{ todo.id }}" method="post">
+      <button type="submit" class="status-btn status-{{ todo.status }}">
+        {{ status_labels.get(todo.status, todo.status) }}
+      </button>
+    </form>
+  </li>
+  {% else %}
+  <li class="empty">目前沒有待辦事項</li>
+  {% endfor %}
+</ul>
+{% endblock %}
