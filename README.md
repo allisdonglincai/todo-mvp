@@ -7,14 +7,15 @@
 
 <br />
 <div align="center">
-  <h3 align="center">Todo App v1 MVP</h3>
+  <h1 align="center">🟡 Todo App <sup>v1 MVP</sup></h1>
+</div>
 
+<img src="assets/cover.png" alt="Todo App v1 MVP — server-rendered 的 Flask + SQLite Todo app，帶登入驗證、per-user 資料隔離、三態狀態循環與 admin 後台，單一 Dockerfile 部署" width="100%">
+
+<div align="center">
   <p align="center">
-    一個 server-rendered 的 Flask + SQLite Todo app，帶登入驗證、per-user 資料、三態狀態與 admin 後台
-    <br />
-    <a href=".scratch/todo-mvp-wrapup/v1-contract.md"><strong>看路由 / schema 契約 »</strong></a>
-    <br />
-    <br />
+    <a href=".scratch/todo-mvp-wrapup/v1-contract.md">路由 / schema 契約</a>
+    &middot;
     <a href="#usage">Usage</a>
     &middot;
     <a href="#architecture--how-this-was-built">Architecture</a>
@@ -60,15 +61,13 @@
 
 ### Built With
 
-[![Python][Python-badge]][Python-url] [![Flask][Flask-badge]][Flask-url]
+* [![Python][Python-badge]][Python-url] [![Flask][Flask-badge]][Flask-url]
+* SQLite3（Python stdlib，無 ORM）
+* [Werkzeug](https://werkzeug.palletsprojects.com/)（Flask 本身的依賴，密碼雜湊用，沒有額外裝套件）
+* Docker（單一 `Dockerfile`，沒有 docker-compose）
+* Jinja2 server-rendered template + 一支 vanilla JS 處理 loading 過渡遮罩（沒有前端框架）
 
-一張圖看懂技術棧與請求怎麼流動：使用者的請求進到單一 Flask process，用 Werkzeug 做密碼雜湊、Flask session 記登入態，樣板用 Jinja2 server-rendered、靜態資源是 `hallmark` 產出的 Bubble design system；資料落地在同一個 container 裡的 SQLite（stdlib，無 ORM）；整包用單一 `Dockerfile` 部署，啟動時吃三個必要環境變數。
-
-<p align="center">
-  <img src="assets/architecture.png" alt="Todo App Architecture / Tech Stack 圖：瀏覽器直接請求單一 Flask process，經 Werkzeug 密碼雜湊與 Flask Session 驗證後，由 Jinja2 render_template 產生 HTML，靜態資源為 Bubble design system；資料讀寫 SQLite3；整包包在單一 Dockerfile 的 Docker Container 裡，啟動時注入三個必要環境變數。" width="100%">
-</p>
-
-其餘依賴：SQLite3（Python stdlib，無 ORM）、[Werkzeug](https://werkzeug.palletsprojects.com/)（Flask 本身的依賴，沒有額外裝套件）、Docker（單一 `Dockerfile`，沒有 docker-compose）；前端沒有框架，純 Jinja2 server-rendered template + 一支 vanilla JS 處理 loading 過渡遮罩。
+技術棧與請求怎麼流動的完整架構圖，見 [Architecture &amp; How This Was Built](#architecture--how-this-was-built)。
 
 <!-- FEATURES -->
 ## Features
@@ -192,6 +191,10 @@ bash scripts/verify_deploy.sh
 ## Architecture & How This Was Built
 
 **執行期**：Flask 單一 process，server-rendered（沒有前後端分離），登入態走 Flask 內建 session，密碼雜湊走 Werkzeug，資料存在同一個 container 裡的 SQLite 檔案。
+
+<p align="center">
+  <img src="assets/architecture.png" alt="Todo App Architecture 圖：瀏覽器直接請求單一 Flask process，經 Werkzeug 密碼雜湊與 Flask Session 驗證後，由 Jinja2 render_template 產生 HTML，靜態資源為 Bubble design system；資料讀寫 SQLite3；整包包在單一 Dockerfile 的 Docker Container 裡，啟動時注入三個必要環境變數。" width="100%">
+</p>
 
 **開發期**——這是這個專案比較不尋常的地方：v1 的登入/驗證/admin/三態範圍是用 4 個獨立的 Claude Code session 平行開發出來的：
 
