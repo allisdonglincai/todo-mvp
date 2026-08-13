@@ -35,6 +35,7 @@
         <li><a href="#built-with">Built With</a></li>
       </ul>
     </li>
+    <li><a href="#features">Features</a></li>
     <li>
       <a href="#getting-started">Getting Started</a>
       <ul>
@@ -65,12 +66,114 @@
 
 ### Built With
 
-* [![Python][Python-badge]][Python-url]
-* [![Flask][Flask-badge]][Flask-url]
-* SQLite3（Python stdlib，無 ORM）
-* [Werkzeug](https://werkzeug.palletsprojects.com/)（密碼雜湊，Flask 本身的依賴，沒有額外裝套件）
-* Docker（單一 `Dockerfile`，沒有 docker-compose）
-* 前端沒有框架：Jinja2 server-rendered template + 一支 vanilla JS 處理 loading 過渡遮罩
+[![Python][Python-badge]][Python-url] [![Flask][Flask-badge]][Flask-url]
+
+一張圖看懂技術棧與請求怎麼流動：使用者的請求進到單一 Flask process，用 Werkzeug 做密碼雜湊、Flask session 記登入態，樣板用 Jinja2 server-rendered、靜態資源是 `hallmark` 產出的 Bubble design system；資料落地在同一個 container 裡的 SQLite（stdlib，無 ORM）；整包用單一 `Dockerfile` 部署，啟動時吃三個必要環境變數。
+
+```mermaid
+flowchart TB
+    User(["使用者 / Admin<br/>瀏覽器"])
+    Env{{"環境變數（必要）<br/>SECRET_KEY・ADMIN_USERNAME・ADMIN_PASSWORD"}}
+
+    User <-->|"HTTP 請求 / HTML 回應"| Routes
+
+    subgraph Docker["Docker Container（單一 Dockerfile）"]
+        direction TB
+
+        subgraph Flask["Flask App － 單一 process，server-rendered"]
+            direction TB
+            Routes["路由層<br/>/register · /login · /logout<br/>/ · /add · /status/:id · /admin"]
+            Session["Flask Session<br/>登入狀態"]
+            Hash["Werkzeug<br/>密碼雜湊"]
+            Templates["Jinja2 Templates<br/>base / index / login / register / admin"]
+            Static["static/css<br/>tokens.css + app.css<br/>(Bubble design system)"]
+        end
+
+        DB[("SQLite3<br/>stdlib，無 ORM<br/>users・todos")]
+    end
+
+    Routes --> Session
+    Routes --> Hash
+    Routes -- "render_template" --> Templates
+    Templates -. "引用" .-> Static
+    Routes -- "讀 / 寫" --> DB
+    Env -. "啟動時注入" .-> Routes
+
+    classDef pear fill:#F7E17E,stroke:#B98A2E,color:#20171B;
+    classDef cyan fill:#8FD3F4,stroke:#1E6FA8,color:#101A22;
+    classDef coral fill:#F4A6A0,stroke:#B8453D,color:#221211;
+    classDef mint fill:#B8E3C7,stroke:#2E8B57,color:#0F1F16;
+    classDef neutral fill:#F5F0E1,stroke:#8A7F63,color:#1C1A16;
+
+    class Routes cyan
+    class Session,Hash neutral
+    class Templates,Static pear
+    class DB mint
+    class Env coral
+    class User neutral
+```
+
+其餘依賴：SQLite3（Python stdlib，無 ORM）、[Werkzeug](https://werkzeug.palletsprojects.com/)（Flask 本身的依賴，沒有額外裝套件）、Docker（單一 `Dockerfile`，沒有 docker-compose）；前端沒有框架，純 Jinja2 server-rendered template + 一支 vanilla JS 處理 loading 過渡遮罩。
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+<!-- FEATURES -->
+## Features
+
+<table>
+<tr>
+<td width="50%" valign="middle">
+
+### 開放註冊
+
+任何人都能自建帳號——帳號 3–30 碼英數字或底線、密碼至少 8 碼，畫面上直接標出規則；送出後後端會再驗一次，不是只靠前端擋。
+
+[路由契約 →](.scratch/todo-mvp-wrapup/v1-contract.md#輸入驗證規則前端-html5-屬性--後端二次驗證都要)
+
+</td>
+<td width="50%">
+  <img src="assets/register.png" alt="註冊頁，帳號與密碼欄位下方標著格式規則" width="100%" />
+</td>
+</tr>
+<tr>
+<td width="50%" valign="middle">
+
+### 登入保護
+
+沒登入進不了 `/`——每個頁面過場都會先擋一次，登入態走 Flask 內建 session，不是裝飾用的假保護。
+
+[Usage →](#usage)
+
+</td>
+<td width="50%">
+  <img src="assets/login.png" alt="登入頁，帳號密碼表單" width="100%" />
+</td>
+</tr>
+<tr>
+<td width="50%" valign="middle">
+
+### Per-user 三態待辦
+
+新增、查詢都只看得到自己的資料；狀態不是打勾了事，是「未處理 → 進行中 → 已完成」點一下循環一格，三色一眼分辨。
+
+</td>
+<td width="50%">
+  <img src="assets/todos.png" alt="待辦清單頁，四筆待辦分別是已完成、進行中、待處理三種狀態" width="100%" />
+</td>
+</tr>
+<tr>
+<td width="50%" valign="middle">
+
+### Admin 後台
+
+admin 帳號在部署時用環境變數指定，不能自己升級自己；登入後可以看到所有帳號跟各自的待辦，一眼掌握全站狀態。
+
+</td>
+<td width="50%">
+  <img src="assets/admin.png" alt="Admin 後台，並排顯示 admin 與 demo_user 兩個帳號各自的待辦" width="100%" />
+</td>
+</tr>
+</table>
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
