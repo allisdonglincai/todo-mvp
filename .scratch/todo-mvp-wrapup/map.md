@@ -33,7 +33,9 @@ Label: wayfinder:map
 
 ## Not yet specified
 
-（目前沒有未拆解的模糊區域；v1 MVP 的範圍已全數落成 ticket 10/11/12，細節在 v1-contract.md）
+（v1 MVP 範圍已全數落成 ticket 10/11/12，細節在 v1-contract.md，v1 已收尾並 push 到 origin/master）
+
+- **v2 CRUD 補完（Update/Delete todo）**：需求已交接，尚未拆 ticket、尚未 dispatch。下一個 main/coordinator session 開工前讀 [v2-handoff.md](v2-handoff.md)（現況、範圍、建議介面契約、跟 v1 的 lane 設定差異、這輪踩過的坑）
 
 ## Out of scope
 
