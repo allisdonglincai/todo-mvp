@@ -8,9 +8,7 @@
 <p align="center">
   <a href=".scratch/todo-mvp-wrapup/v1-contract.md">路由 / schema 契約</a>
   &middot;
-  <a href="#usage">Usage</a>
-  &middot;
-  <a href="#architecture--how-this-was-built">Architecture</a>
+  <a href="#architecture">Architecture</a>
   &middot;
   <a href=".scratch/todo-mvp-wrapup/map.md">Wayfinder Map</a>
 </p>
@@ -39,10 +37,10 @@
       <ul>
         <li><a href="#prerequisites">Prerequisites</a></li>
         <li><a href="#installation">Installation</a></li>
+        <li><a href="#testing">Testing</a></li>
       </ul>
     </li>
-    <li><a href="#usage">Usage</a></li>
-    <li><a href="#architecture--how-this-was-built">Architecture &amp; How This Was Built</a></li>
+    <li><a href="#architecture">Architecture</a></li>
     <li><a href="#roadmap">Roadmap</a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#acknowledgments">Acknowledgments</a></li>
@@ -54,7 +52,7 @@
 
 一個刻意保持小巧的 Todo app：註冊、登入、per-user 的待辦清單、三態狀態循環、admin 後台。伺服器端渲染的 Flask + SQLite，單一 Dockerfile 部署，沒有前端框架、沒有 ORM。
 
-這個 repo 真正的目的不是 Todo app 本身，而是拿它當載體，練習「在時間盒內用結構化方式與 agent 協作交付」——用 [wayfinder](.scratch/todo-mvp-wrapup/map.md) 拆解決策、用 4 個獨立的 Claude Code session（1 個 coordinator + backend / frontend / devops 三個 worker）平行開發，細節見 [Architecture](#architecture--how-this-was-built)。
+這個 repo 真正的目的不是 Todo app 本身，而是拿它當載體，練習「在時間盒內用結構化方式與 agent 協作交付」——用 [wayfinder](.scratch/todo-mvp-wrapup/map.md) 拆解決策、用 4 個獨立的 Claude Code session（1 個 coordinator + backend / frontend / devops 三個 worker）平行開發，細節見 [Architecture](#architecture)。
 
 <!-- FEATURES -->
 ## Features
@@ -80,8 +78,6 @@
 ### 登入保護
 
 沒登入進不了 `/`——每個頁面過場都會先擋一次，登入態走 Flask 內建 session，不是裝飾用的假保護。
-
-[Usage →](#usage)
 
 </td>
 <td width="50%">
@@ -145,24 +141,9 @@ admin 帳號在部署時用環境變數指定，不能自己升級自己；登�
    ```
 4. 打開 [http://localhost:5000/](http://localhost:5000/)，未登入會直接被導到 `/login`
 
-<!-- USAGE EXAMPLES -->
-## Usage
+### Testing
 
-一般使用者：`/register` 開放自由註冊 → `/login` → 首頁只看得到自己的 todo → 點狀態按鈕在「未處理 → 進行中 → 已完成」之間循環 → `/logout`。
-
-Admin：用啟動時指定的 `ADMIN_USERNAME` / `ADMIN_PASSWORD` 登入，進 `/admin` 可以看到所有已註冊帳號與各自的 todo（含建立時間、狀態）；非 admin 存取這個路由會被拒絕。
-
-| Method | Path | 需要登入 | 需要 admin |
-|---|---|---|---|
-| GET/POST | `/register` | 否 | 否 |
-| GET/POST | `/login` | 否 | 否 |
-| POST | `/logout` | 是 | 否 |
-| GET | `/` | 是 | 否 |
-| POST | `/add` | 是 | 否 |
-| POST | `/status/<int:todo_id>` | 是 | 否 |
-| GET | `/admin` | 是 | 是 |
-
-完整的路由/schema/驗證規則契約在 [`v1-contract.md`](.scratch/todo-mvp-wrapup/v1-contract.md)；本地跑測試：
+本地跑測試：
 
 ```sh
 pytest test_app.py
@@ -174,8 +155,10 @@ pytest test_app.py
 bash scripts/verify_deploy.sh
 ```
 
+完整的路由/schema/驗證規則契約在 [`v1-contract.md`](.scratch/todo-mvp-wrapup/v1-contract.md)。
+
 <!-- ARCHITECTURE -->
-## Architecture & How This Was Built
+## Architecture
 
 **執行期**：Flask 單一 process，server-rendered，session 登入態 + Werkzeug 密碼雜湊 + SQLite，如下圖。
 
