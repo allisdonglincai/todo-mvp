@@ -224,6 +224,13 @@ p {
   white-space: nowrap;
 }
 
+.wordmark-logo {
+  display: block;
+  width: 1.5em;
+  height: 1.5em;
+  object-fit: contain;
+}
+
 .wordmark:hover {
   color: var(--color-ink);
 }

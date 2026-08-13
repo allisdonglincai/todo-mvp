@@ -1,6 +1,8 @@
 <br />
 <div align="center">
-  <h1 align="center">🟡 Todo App <sup>v1 MVP</sup></h1>
+  <h1 align="center">
+    <a href="https://github.com/allisdonglincai/todo-mvp"><img src="assets/logo.webp" alt="Todo App" width="64" valign="middle" /></a> Todo App <sup>v1 MVP</sup>
+  </h1>
 </div>
 
 <p align="center">

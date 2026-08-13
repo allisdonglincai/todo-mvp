@@ -7,6 +7,11 @@
       content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
     <title>{% block title %}Todo{% endblock %}</title>
+    <link
+      rel="icon"
+      type="image/webp"
+      href="{{ url_for('static', filename='img/logo.webp') }}"
+    />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -34,7 +39,13 @@
         class="site-header__inner shell{% if not session.user_id %} shell--narrow{% endif %}"
       >
         <a class="wordmark" href="{{ '/' if session.user_id else '/login' }}">
-          <span class="bubble-mark" aria-hidden="true"></span>
+          <img
+            class="wordmark-logo"
+            src="{{ url_for('static', filename='img/logo.webp') }}"
+            alt=""
+            width="24"
+            height="24"
+          />
           Todo
         </a>
         {% if session.user_id %}
