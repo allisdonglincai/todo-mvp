@@ -224,7 +224,11 @@
     overlay.classList.add("active");
   }
   document.addEventListener("submit", showOverlay);
-  document.addEventListener("click", showOverlay);
+  document.addEventListener("click", function (event) {
+    if (event.target.closest("a[href], button[type=submit], input[type=submit]")) {
+      showOverlay();
+    }
+  });
   window.addEventListener("pageshow", function () {
     overlay.classList.remove("active");
   });
