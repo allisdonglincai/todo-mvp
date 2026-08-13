@@ -20,14 +20,20 @@
 
 三個 lane ticket 的 `## Answer` 都填好、且 [Ticket 01](issues/01-mvp-hardening-scope.md) 的 4 項 phase 1 指標實際跑過一遍全部通過，才算這一輪結束。不要因為某個 lane「說」它做完了就採信——見下一節。
 
+## 兩層驗證，不是一層
+
+每個 lane ticket（[10](issues/10-devops-lane.md)/[11](issues/11-backend-lane.md)/[12](issues/12-frontend-lane.md)）的 `## Verification` 都已經寫好各自的 `/goal ... stop after N tries`——dispatch 的時候把那段 `/goal` 指令一起送過去，讓 worker session 自己用一個獨立的 evaluator model 收斂到通過，而不是自己邊做邊自己說「應該可以了」。
+
+但這只是第一層。`/goal` 的 evaluator 看到的只有 worker 給它看的東西，本質上還是同一個 session 內部的自我檢查。第二層是 main（你）在下一節「Verify」步驟裡，**在自己的 terminal 上獨立重跑同一支檢查指令**，拿到的是全新一次執行的 exit code，不是轉述。兩層都過，這個 lane 才算真的收斂。
+
 ## Dispatch → wait → verify → record
 
 對每個 lane（devops → backend → frontend，順序不重要，三個可以同時發）：
 
 1. **Claim**：在對應 ticket 檔案加一行 `Status: claimed`
-2. **Dispatch**：`orca-ide terminal send --terminal <handle> --text "<ticket 內容 + 檔案路徑>" --enter`，或用 `orca-ide orchestration dispatch`（如果已經有 `run-create` 綁定的 Run）
+2. **Dispatch**：`orca-ide terminal send --terminal <handle> --text "<ticket 內容 + 檔案路徑 + 該 ticket 的 /goal 指令>" --enter`，或用 `orca-ide orchestration dispatch`（如果已經有 `run-create` 綁定的 Run）
 3. **Wait**：`orca-ide terminal wait --terminal <handle> --for tui-idle`，不要用 sleep 迴圈用猜的
-4. **Verify（maker/checker 分離）**：worker 回報「做完了」不算數。main session 自己（或另開一個 verify-only 的 subagent）實際跑一次該 lane 對應的檢查指令（例如 devops lane 就自己執行 `scripts/verify_deploy.sh`），拿到的是指令的 exit code / 實際輸出，不是 worker 的自我陳述
+4. **Verify（maker/checker 分離，第二層）**：worker 回報「`/goal` 通過了」不算數。main session 自己（或另開一個 verify-only 的 subagent）實際重跑一次該 lane 對應的檢查指令（例如 devops lane 就自己執行 `scripts/verify_deploy.sh`），拿到的是指令的 exit code / 實際輸出，不是 worker 的自我陳述
 5. **Record**：驗證通過才把該 ticket 的 `## Answer` 填上實際結果、`Status: resolved`，並把一行 gist 加進 `map.md` 的 Decisions so far；驗證沒過就把失敗原因寫回 ticket，重新 dispatch 或視情況用 `orca-ide orchestration ask` 把問題丟回對應 lane
 
 ## 邊界（AFK 期間不能違反）

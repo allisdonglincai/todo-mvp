@@ -18,6 +18,18 @@ Lane: devops
 
 腳本全過 = phase 1 指標 2/3/4 通過。
 
+## Verification（closed loop）
+
+這個 lane 自己開工時用：
+
+```
+/goal scripts/verify_deploy.sh 可執行、跑起來 exit code 是 0，stop after 5 tries
+```
+
+`/goal` 每次嘗試後由獨立的 evaluator model 檢查腳本是否真的 exit 0，不是自己說了算。5 次還沒過就停下來，把失敗輸出（哪一步、什麼錯誤）寫進 Answer；若卡在需要改 `app.py`（例如缺 health endpoint 或持久化有 bug），走 `orca orchestration ask`，不要自己硬繞過。
+
+回報給 main 之後，main 會**獨立重跑一次 `scripts/verify_deploy.sh`**，不採信這裡的自我陳述——這是第二層驗證，跟 `/goal` 的 evaluator model 是不同的檢查者。
+
 ## Answer
 
 （main session dispatch 後，由 devops lane 回報結果並在此記錄：腳本路徑、實際執行輸出、是否全綠）
