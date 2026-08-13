@@ -25,6 +25,7 @@ Label: wayfinder:map
 - [MVP 是否需要收尾/加固到可展示程度](issues/01-mvp-hardening-scope.md) — 不加固（不換 gunicorn、不加錯誤處理），改以 4 項 deterministic 檢查作為 phase 1 stop condition
 - ~~[是否繼續擴充範圍，或在目前 scope 結案](issues/02-continue-or-close-scope.md) — 原決議「在目前 scope 結案」，已被 Ticket 20 推翻~~
 - [v1 MVP 範圍重新定義](issues/20-v1-mvp-scope-reopen.md) — 推翻 Ticket 02，正式納入登入/註冊/驗證 + admin 後台 + 三態狀態 + loading + 雙層輸入驗證 + SOLID/KISS 開發原則；細節見 [v1-contract.md](v1-contract.md)
+- [Ticket 12 frontend lane](issues/12-frontend-lane.md) — resolved：五個 templates 依 v1-contract 建立/改寫（commit `f28084e`），main 獨立重跑 Jinja2/html.parser 靜態檢查 exit 0 確認通過，已合併回 master
 
 ## Not yet specified
 

@@ -40,4 +40,25 @@ Status: claimed
 
 ## Answer
 
-（main session dispatch 後，由 devops lane 回報結果並在此記錄：腳本路徑、實際執行輸出、是否全綠）
+**腳本路徑**：`scripts/verify_deploy.sh`（devops-lane worktree，已 commit：`ad3417e`）
+
+**內容**：依 v1-contract.md 完整流程實作 6 步驟——`docker build` → 帶 `SECRET_KEY`/`ADMIN_USERNAME`/`ADMIN_PASSWORD` 啟動 container 並等待就緒（用連線是否建立判斷，不綁定特定路由，讓建置/啟動這段不依賴 backend 進度）→ curl 流程（register → login → add → 連續切換狀態三次確認回到 pending，中間也檢查有經過 in_progress/done → logout）→ admin 登入 + `GET /admin` 內容檢查測試帳號與 todo 都出現 → `docker restart` 後重新登入確認資料仍在 → trap 確保不論成敗都 `docker rm -f` 清掉 container。全程用獨立 cookie jar 區分一般使用者與 admin 的 session。
+
+**實際執行輸出**（在 devops-lane worktree、對目前分支上的 `app.py` 執行）：
+
+```
+==> 1/6 docker build -t todo-mvp .
+...（build 全部 cached/成功）
+==> 2/6 start container, wait for readiness
+==> 3/6 curl flow: register -> login -> add todo -> cycle status x3 -> logout
+FAIL: POST /register — expected HTTP 302, got 404
+EXIT CODE: 1
+```
+
+**是否全綠**：否，`exit 1`。**Build 與啟動（步驟 1–2）已驗證通過**——這是目前 devops-lane 這份舊版 `app.py`（還沒有 `/register` 等 v1 路由）能驗證到的極限，符合 ticket 裡「backend 還沒完成，先把腳本寫好、跑通建置/啟動」的預期，不是腳本本身的 bug。卡在 [Ticket 11 backend lane](11-backend-lane.md) 還沒收斂（目前 `backend-lane` 分支上 `app.py` 仍是舊版，`Status: claimed`，無 Answer）——`/register` 等路由尚未存在，curl 流程從第一步就 404。
+
+失敗後容器已被 trap 正確清掉（`docker ps -a` 確認無殘留）。
+
+**下一步**：不需要重新 dispatch devops——腳本已依 v1-contract 的最終路由/欄位契約寫好，backend lane 完成後不用改腳本，直接重跑 `scripts/verify_deploy.sh` 即可驗證完整流程。因為卡住原因是跨 lane 依賴（非 devops 自身重試能解決的失敗），依 operating-principles 的 cost ceiling 原則沒有繼續耗用 `/goal` 的 6 次嘗試去撞同一個因 backend 未完成而必然出現的 404。
+
+Status 維持 `claimed`（未達成 exit 0 的目標，不能標 resolved）；等 backend lane 的 Answer 填好、`app.py` 換成 v1 路由後，重跑本腳本即可轉 `resolved`。
