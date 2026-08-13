@@ -2,9 +2,18 @@
 
 給負責這一輪 dispatch 的 main session 讀。目標：把 [Ticket 10](issues/10-devops-lane.md)、[Ticket 11](issues/11-backend-lane.md)、[Ticket 12](issues/12-frontend-lane.md) 分派給三個 worker session 各自完成、驗證、收斂，main session 自己不寫 `app.py` / `templates/` / `Dockerfile`。
 
+## Terminal handle 對應（已確認，不用重找）
+
+- backend: `term_47efc46a-2cd3-4244-8e7f-294026a4af88`
+- frontend: `term_ab6d2123-1d07-4dd5-b4a7-b3da663f0c0a`
+- devops: `term_14769cdd-745f-4e49-be17-b54635d36fcf`
+- main（就是你自己）: `term_3c510b33-4c33-4664-840c-bebec88dc15f`
+
+三個 tab 標題已經 rename 成 `✳ backend` / `✳ frontend` / `✳ devops`，`orca-ide terminal list --json` 隨時可以重新核對，但正常情況下不需要再猜。
+
 ## 開工前必查（before you start）
 
-1. `orca-ide terminal list --json` 確認要 dispatch 的三個 terminal handle，並用 `orca-ide terminal rename` 標上 lane 名字，避免之後認錯視窗
+1. 上面的 handle 對應如果因為使用者重開視窗而失效，才需要重跑 `orca-ide terminal list --json` 並用 `orca-ide terminal rename` 重新標定
 2. 這個 repo 尚未 `orca repo add` 註冊進 Orca，也沒有建立 orca-managed worktree/branch。目前規劃是靠「檔案切分（見 map Notes 的 Lane 切分規則）」而非 git worktree 隔離三個 lane，因為範圍小、檔案本來就不重疊。如果之後想要真正的 worktree 隔離，要先 `orca-ide repo add --path <this-repo>`，再用 `orca-ide worktree create --agent claude` 幫每個 lane 開獨立 checkout——這是額外的基礎建設，不是這一輪 dispatch 的前提
 
 ## Stop condition（goal-based，非人工判斷）
