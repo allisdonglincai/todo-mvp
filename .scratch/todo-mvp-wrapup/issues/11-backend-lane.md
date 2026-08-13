@@ -1,6 +1,7 @@
 Type: task
 Mode: execution
 Lane: backend
+Status: claimed
 
 開工前先讀 [operating-principles.md](../operating-principles.md)（stop conditions/cost ceilings、切勿假設應該沒問題、worktree 隔離規則、SOLID/KISS）與 [v1-contract.md](../v1-contract.md)（路由/session/schema/驗證規則的權威定義）。
 

@@ -1,6 +1,7 @@
 Type: task
 Mode: execution
 Lane: devops
+Status: claimed
 
 開工前先讀 [operating-principles.md](../operating-principles.md)（stop conditions/cost ceilings、切勿假設應該沒問題、worktree 隔離規則、SOLID/KISS）與 [v1-contract.md](../v1-contract.md)（環境變數、驗證流程的權威定義）。
 
