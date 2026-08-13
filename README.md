@@ -1,39 +1,36 @@
-<!-- PROJECT SHIELDS -->
-[![Python][python-shield]][python-url]
-[![Flask][flask-shield]][flask-url]
-[![SQLite][sqlite-shield]][sqlite-url]
-[![Docker][docker-shield]][docker-url]
-[![License: MIT][license-shield]](LICENSE)
-
 <br />
 <div align="center">
   <h1 align="center">🟡 Todo App <sup>v1 MVP</sup></h1>
 </div>
 
-<img src="assets/cover.png" alt="Todo App v1 MVP — server-rendered 的 Flask + SQLite Todo app，帶登入驗證、per-user 資料隔離、三態狀態循環與 admin 後台，單一 Dockerfile 部署" width="100%">
+<p align="center">
+  <a href=".scratch/todo-mvp-wrapup/v1-contract.md">路由 / schema 契約</a>
+  &middot;
+  <a href="#usage">Usage</a>
+  &middot;
+  <a href="#architecture--how-this-was-built">Architecture</a>
+  &middot;
+  <a href=".scratch/todo-mvp-wrapup/map.md">Wayfinder Map</a>
+</p>
 
-<div align="center">
-  <p align="center">
-    <a href=".scratch/todo-mvp-wrapup/v1-contract.md">路由 / schema 契約</a>
-    &middot;
-    <a href="#usage">Usage</a>
-    &middot;
-    <a href="#architecture--how-this-was-built">Architecture</a>
-    &middot;
-    <a href=".scratch/todo-mvp-wrapup/map.md">Wayfinder Map</a>
-  </p>
-</div>
+<!-- PROJECT SHIELDS -->
+<p align="center">
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white" alt="Python" /></a>
+  <a href="https://flask.palletsprojects.com/"><img src="https://img.shields.io/badge/Flask-000000?style=flat&logo=flask&logoColor=white" alt="Flask" /></a>
+  <a href="https://www.sqlite.org/"><img src="https://img.shields.io/badge/sqlite3-stdlib%2C%20no%20ORM-003B57?style=flat&logo=sqlite&logoColor=white" alt="SQLite" /></a>
+  <a href="https://www.docker.com/"><img src="https://img.shields.io/badge/docker-single%20Dockerfile-2496ED?style=flat&logo=docker&logoColor=white" alt="Docker" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow?style=flat" alt="License: MIT" /></a>
+</p>
+
+---
+
+<img src="assets/cover.png" alt="Todo App v1 MVP — server-rendered 的 Flask + SQLite Todo app，帶登入驗證、per-user 資料隔離、三態狀態循環與 admin 後台，單一 Dockerfile 部署" width="100%">
 
 <!-- TABLE OF CONTENTS -->
 <details>
   <summary>Table of Contents</summary>
   <ol>
-    <li>
-      <a href="#about-the-project">About The Project</a>
-      <ul>
-        <li><a href="#built-with">Built With</a></li>
-      </ul>
-    </li>
+    <li><a href="#about-the-project">About The Project</a></li>
     <li><a href="#features">Features</a></li>
     <li>
       <a href="#getting-started">Getting Started</a>
@@ -53,21 +50,11 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-一個刻意保持小巧的 Todo app：註冊、登入、per-user 的待辦清單、三態狀態（未處理／進行中／已完成），以及一個 admin 後台可以看到所有帳號跟各自的待辦事項。
+一個刻意保持小巧的 Todo app：註冊、登入、per-user 的待辦清單、三態狀態（未處理／進行中／已完成），以及一個 admin 後台可以看到所有帳號跟各自的待辦事項。伺服器端渲染的 Flask + SQLite，單一 Dockerfile 部署，沒有前端框架、沒有 ORM——技術棧與請求流向的完整架構圖，見 [Architecture &amp; How This Was Built](#architecture--how-this-was-built)。
 
-這個 repo 真正的目的不是 Todo app 本身，而是拿它當載體，練習「在時間盒內用結構化方式與 agent 協作交付」——用 [wayfinder](.scratch/todo-mvp-wrapup/map.md) 拆解決策、用 4 個獨立的 Claude Code session（1 個 coordinator + backend / frontend / devops 三個 worker）平行開發。細節見下方 [Architecture](#architecture--how-this-was-built)。
+這個 repo 真正的目的不是 Todo app 本身，而是拿它當載體，練習「在時間盒內用結構化方式與 agent 協作交付」——用 [wayfinder](.scratch/todo-mvp-wrapup/map.md) 拆解決策、用 4 個獨立的 Claude Code session（1 個 coordinator + backend / frontend / devops 三個 worker）平行開發，細節同樣在 [Architecture](#architecture--how-this-was-built)。
 
 刻意不做的事：刪除 todo、正式 WSGI server（目前仍是 Flask dev server）——這些是明確排出範圍的決定，不是漏做。
-
-### Built With
-
-* [![Python][Python-badge]][Python-url] [![Flask][Flask-badge]][Flask-url]
-* SQLite3（Python stdlib，無 ORM）
-* [Werkzeug](https://werkzeug.palletsprojects.com/)（Flask 本身的依賴，密碼雜湊用，沒有額外裝套件）
-* Docker（單一 `Dockerfile`，沒有 docker-compose）
-* Jinja2 server-rendered template + 一支 vanilla JS 處理 loading 過渡遮罩（沒有前端框架）
-
-技術棧與請求怎麼流動的完整架構圖，見 [Architecture &amp; How This Was Built](#architecture--how-this-was-built)。
 
 <!-- FEATURES -->
 ## Features
@@ -237,16 +224,3 @@ Distributed under the MIT License. See [`LICENSE`](LICENSE) for more information
 * [Best-README-Template](https://github.com/othneildrew/Best-README-Template) — 這份 README 的架構範本
 * [Flask](https://flask.palletsprojects.com/) / [Werkzeug](https://werkzeug.palletsprojects.com/) 文件
 * `orca-ide` — 驅動這次 4 個 session 平行協作的 terminal/worktree/orchestration 工具
-
-<!-- MARKDOWN LINKS & IMAGES -->
-[python-shield]: https://img.shields.io/badge/python-3.12-blue?style=for-the-badge&logo=python&logoColor=white
-[python-url]: https://www.python.org/
-[flask-shield]: https://img.shields.io/badge/flask-server--rendered-black?style=for-the-badge&logo=flask&logoColor=white
-[flask-url]: https://flask.palletsprojects.com/
-[sqlite-shield]: https://img.shields.io/badge/sqlite3-stdlib%2C%20no%20ORM-003B57?style=for-the-badge&logo=sqlite&logoColor=white
-[sqlite-url]: https://www.sqlite.org/
-[docker-shield]: https://img.shields.io/badge/docker-single%20Dockerfile-2496ED?style=for-the-badge&logo=docker&logoColor=white
-[docker-url]: https://www.docker.com/
-[license-shield]: https://img.shields.io/badge/license-MIT-yellow?style=for-the-badge
-[Python-badge]: https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white
-[Flask-badge]: https://img.shields.io/badge/Flask-000000?style=flat&logo=flask&logoColor=white
