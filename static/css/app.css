@@ -921,3 +921,18 @@ input[type=password]:focus {
     display: none;
   }
 }
+/* ============ inline edit ============ */
+.todo-item {
+  flex-wrap: wrap;
+}
+
+.edit-form:not([hidden]) {
+  display: flex;
+  gap: var(--space-sm);
+  width: 100%;
+}
+
+.edit-form input {
+  flex: 1;
+  min-width: 0;
+}

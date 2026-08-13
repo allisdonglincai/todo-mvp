@@ -25,6 +25,32 @@
         {{ status_labels.get(todo.status, todo.status) }}
       </button>
     </form>
+    <button
+      type="button"
+      class="btn btn--outline btn--sm"
+      onclick="var f=this.parentNode.querySelector('.edit-form');f.hidden=!f.hidden;if(!f.hidden)f.title.focus()"
+    >
+      編輯
+    </button>
+    <form
+      action="/delete/{{ todo.id }}"
+      method="post"
+      onsubmit="if(!confirm('確定要刪除「{{ todo.title }}」嗎？')){event.stopPropagation();return false}"
+    >
+      <button type="submit" class="btn btn--coral btn--sm">刪除</button>
+    </form>
+    <form action="/edit/{{ todo.id }}" method="post" class="edit-form" hidden>
+      <label class="sr-only" for="edit-title-{{ todo.id }}">編輯待辦事項</label>
+      <input
+        type="text"
+        id="edit-title-{{ todo.id }}"
+        name="title"
+        value="{{ todo.title }}"
+        maxlength="200"
+        required
+      />
+      <button type="submit" class="btn btn--pear btn--sm">儲存</button>
+    </form>
   </li>
   {% else %}
   <li class="empty">還沒有待辦事項，新增第一項開始吧</li>
