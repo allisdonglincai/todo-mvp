@@ -52,11 +52,9 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-一個刻意保持小巧的 Todo app：註冊、登入、per-user 的待辦清單、三態狀態（未處理／進行中／已完成），以及一個 admin 後台可以看到所有帳號跟各自的待辦事項。伺服器端渲染的 Flask + SQLite，單一 Dockerfile 部署，沒有前端框架、沒有 ORM——技術棧與請求流向的完整架構圖，見 [Architecture &amp; How This Was Built](#architecture--how-this-was-built)。
+一個刻意保持小巧的 Todo app：註冊、登入、per-user 的待辦清單、三態狀態循環、admin 後台。伺服器端渲染的 Flask + SQLite，單一 Dockerfile 部署，沒有前端框架、沒有 ORM。
 
-這個 repo 真正的目的不是 Todo app 本身，而是拿它當載體，練習「在時間盒內用結構化方式與 agent 協作交付」——用 [wayfinder](.scratch/todo-mvp-wrapup/map.md) 拆解決策、用 4 個獨立的 Claude Code session（1 個 coordinator + backend / frontend / devops 三個 worker）平行開發，細節同樣在 [Architecture](#architecture--how-this-was-built)。
-
-刻意不做的事：刪除 todo、正式 WSGI server（目前仍是 Flask dev server）——這些是明確排出範圍的決定，不是漏做。
+這個 repo 真正的目的不是 Todo app 本身，而是拿它當載體，練習「在時間盒內用結構化方式與 agent 協作交付」——用 [wayfinder](.scratch/todo-mvp-wrapup/map.md) 拆解決策、用 4 個獨立的 Claude Code session（1 個 coordinator + backend / frontend / devops 三個 worker）平行開發，細節見 [Architecture](#architecture--how-this-was-built)。
 
 <!-- FEATURES -->
 ## Features
@@ -179,28 +177,20 @@ bash scripts/verify_deploy.sh
 <!-- ARCHITECTURE -->
 ## Architecture & How This Was Built
 
-**執行期**：Flask 單一 process，server-rendered（沒有前後端分離），登入態走 Flask 內建 session，密碼雜湊走 Werkzeug，資料存在同一個 container 裡的 SQLite 檔案。
+**執行期**：Flask 單一 process，server-rendered，session 登入態 + Werkzeug 密碼雜湊 + SQLite，如下圖。
 
 <p align="center">
   <img src="assets/architecture.png" alt="Todo App Architecture 圖：瀏覽器直接請求單一 Flask process，經 Werkzeug 密碼雜湊與 Flask Session 驗證後，由 Jinja2 render_template 產生 HTML，靜態資源為 Bubble design system；資料讀寫 SQLite3；整包包在單一 Dockerfile 的 Docker Container 裡，啟動時注入三個必要環境變數。" width="100%">
 </p>
 
-**開發期（Multi-Agent Workflow）**：v1 的登入/驗證/admin/三態範圍是用 4 個獨立的 Claude Code session 平行開發出來的：
+**開發期（Multi-Agent Workflow）**：v1 的登入/驗證/admin/三態範圍用 4 個獨立的 Claude Code session 平行開發，各自在獨立的 git worktree 裡工作、檔案互不重疊，main 獨立驗證通過才合併回 master：
 
-| Session | 負責檔案 | 收斂方式 |
-|---|---|---|
-| `main` / coordinator | 不改程式碼，只 dispatch、驗證、合併 | 對每個 lane 獨立重跑一次檢查，不採信自我回報 |
-| `backend` | `app.py`, `test_app.py` | `/goal` + `pytest` |
-| `frontend` | `templates/`, `static/` | `/goal` + 靜態檢查與瀏覽器操作 |
-| `devops` | `Dockerfile`, `requirements.txt`, `scripts/` | `/goal` + `scripts/verify_deploy.sh` |
+* **`main` / coordinator** — 不改程式碼，只 dispatch、驗證、合併
+* **`backend`**（`app.py`, `test_app.py`）— `/goal` + `pytest`
+* **`frontend`**（`templates/`, `static/`）— `/goal` + 靜態檢查與瀏覽器操作
+* **`devops`**（`Dockerfile`, `requirements.txt`, `scripts/`）— `/goal` + `scripts/verify_deploy.sh`
 
-三個 worker 各自在獨立的 git worktree（`backend-lane` / `frontend-lane` / `devops-lane` 分支）裡工作，檔案互不重疊，透過 `orca-ide` 收發訊息；main 驗證通過才 `merge --no-ff` 回 `master`。決策記錄、路由契約、驗證腳本都在 [`.scratch/todo-mvp-wrapup/`](.scratch/todo-mvp-wrapup/)：
-
-* [`map.md`](.scratch/todo-mvp-wrapup/map.md) — wayfinder map，所有拍板過的決策
-* [`v1-contract.md`](.scratch/todo-mvp-wrapup/v1-contract.md) — 三個 lane 共用的路由/schema/驗證規則
-* [`coordinator-protocol.md`](.scratch/todo-mvp-wrapup/coordinator-protocol.md) / [`operating-principles.md`](.scratch/todo-mvp-wrapup/operating-principles.md) — main 的 dispatch 流程與四個 session 共同遵守的停止條件
-
-UI 樣式走的是 `hallmark` 產出的一套鎖定 design system（[`design.md`](design.md)：Bubble 主題，pear / sky-cyan / coral 三個 accent），四個頁面共用同一組 token，不是每頁各自亂設計。
+決策記錄與協作規則都在 [`.scratch/todo-mvp-wrapup/`](.scratch/todo-mvp-wrapup/)（[`map.md`](.scratch/todo-mvp-wrapup/map.md)、[`v1-contract.md`](.scratch/todo-mvp-wrapup/v1-contract.md)、[`coordinator-protocol.md`](.scratch/todo-mvp-wrapup/coordinator-protocol.md)）；UI 走 `hallmark` 產出的鎖定 design system（[`design.md`](design.md)：Bubble 主題）。
 
 <!-- ROADMAP -->
 ## Roadmap
