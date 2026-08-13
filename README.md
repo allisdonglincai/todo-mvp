@@ -183,7 +183,7 @@ bash scripts/verify_deploy.sh
   <img src="assets/architecture.png" alt="Todo App Architecture 圖：瀏覽器直接請求單一 Flask process，經 Werkzeug 密碼雜湊與 Flask Session 驗證後，由 Jinja2 render_template 產生 HTML，靜態資源為 Bubble design system；資料讀寫 SQLite3；整包包在單一 Dockerfile 的 Docker Container 裡，啟動時注入三個必要環境變數。" width="100%">
 </p>
 
-**開發期**——這是這個專案比較不尋常的地方：v1 的登入/驗證/admin/三態範圍是用 4 個獨立的 Claude Code session 平行開發出來的：
+**開發期（Multi-Agent Workflow）**：v1 的登入/驗證/admin/三態範圍是用 4 個獨立的 Claude Code session 平行開發出來的：
 
 | Session | 負責檔案 | 收斂方式 |
 |---|---|---|
