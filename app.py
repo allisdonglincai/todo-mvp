@@ -194,7 +194,7 @@ def login():
             return render_template("login.html")
         session["user_id"] = user["id"]
         session["is_admin"] = bool(user["is_admin"])
-        return redirect(url_for("index"))
+        return redirect(url_for("admin" if session["is_admin"] else "index"))
     return render_template("login.html")
 
 
