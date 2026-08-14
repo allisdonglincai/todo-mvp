@@ -35,7 +35,8 @@ Label: wayfinder:map
 
 （v1 MVP 範圍已全數落成 ticket 10/11/12，細節在 v1-contract.md，v1 已收尾並 push 到 origin/master）
 
-- **v2 CRUD 補完（Update/Delete todo）**：backend 已收斂（ticket 21 resolved，`/edit`/`/delete` 路由 + 12 測項全綠，master `31fb744`）；frontend 也收斂（ticket 22 resolved，inline 編輯 + confirm() 刪除，真瀏覽器兩層驗證通過，master `178a31a`）。devops 已 rebuild `todo-mvp-demo`（HEAD `178a31a`），main 在 localhost:5000 真瀏覽器實測 edit/delete 全過（編輯生效、取消刪除保留、確認刪除消失、遮罩無卡死）。v2 CRUD 這輪完結。註：container 內殘留測試帳號 `finalcheck_v2`（無 todo）。下一個 main/coordinator session 開工前讀 [v2-handoff.md](v2-handoff.md)（現況、範圍、建議介面契約、跟 v1 的 lane 設定差異、這輪踩過的坑）
+- **v2 CRUD 補完（Update/Delete todo）**：backend 已收斂（ticket 21 resolved，`/edit`/`/delete` 路由 + 12 測項全綠，master `31fb744`）；frontend 也收斂（ticket 22 resolved，inline 編輯 + confirm() 刪除，真瀏覽器兩層驗證通過，master `178a31a`）。devops 已 rebuild `todo-mvp-demo`（HEAD `178a31a`），main 在 localhost:5000 真瀏覽器實測 edit/delete 全過（編輯生效、取消刪除保留、確認刪除消失、遮罩無卡死）。v2 CRUD 這輪完結。
+- **v3 標籤（Tags）**：設計討論 session 收斂方案 B（per-user tags 表 + todos.tag_id 單選、⋮ dropdown、`?tag_id=` 篩選），return 文件經 coordinator 對抗式審核（4 項裁決見 v3-tags-return.md §7）。backend（ticket 23，27 測項）與 frontend（ticket 24，真瀏覽器 8 項）均兩層驗證通過，master `01198e6`。踩坑：devops 曾在主 checkout 自行 merge 出冗餘 commit `ca83cdc`（已 reset 對齊 origin/master）。devops 已 rebuild（container 2026-08-14 重建，HEAD `01198e6`），main 在 localhost:5000 真瀏覽器實測標籤全流程（建標籤/掛標籤/篩選/編輯清標籤/刪 todo/刪標籤）全過。v3 完結。註：container 殘留測試帳號 `v3final`（無 todo/標籤）。註：container 內殘留測試帳號 `finalcheck_v2`（無 todo）。下一個 main/coordinator session 開工前讀 [v2-handoff.md](v2-handoff.md)（現況、範圍、建議介面契約、跟 v1 的 lane 設定差異、這輪踩過的坑）
 
 ## Out of scope
 
