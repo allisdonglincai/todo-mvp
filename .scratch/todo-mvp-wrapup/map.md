@@ -35,7 +35,7 @@ Label: wayfinder:map
 
 （v1 MVP 範圍已全數落成 ticket 10/11/12，細節在 v1-contract.md，v1 已收尾並 push 到 origin/master）
 
-- **v2 CRUD 補完（Update/Delete todo）**：需求已交接，尚未拆 ticket、尚未 dispatch。下一個 main/coordinator session 開工前讀 [v2-handoff.md](v2-handoff.md)（現況、範圍、建議介面契約、跟 v1 的 lane 設定差異、這輪踩過的坑）
+- **v2 CRUD 補完（Update/Delete todo）**：backend 已收斂（ticket 21 resolved，`/edit`/`/delete` 路由 + 12 測項全綠，master `31fb744`）；frontend 也收斂（ticket 22 resolved，inline 編輯 + confirm() 刪除，真瀏覽器兩層驗證通過，master `178a31a`）。devops 已 rebuild `todo-mvp-demo`（HEAD `178a31a`），main 在 localhost:5000 真瀏覽器實測 edit/delete 全過（編輯生效、取消刪除保留、確認刪除消失、遮罩無卡死）。v2 CRUD 這輪完結。註：container 內殘留測試帳號 `finalcheck_v2`（無 todo）。下一個 main/coordinator session 開工前讀 [v2-handoff.md](v2-handoff.md)（現況、範圍、建議介面契約、跟 v1 的 lane 設定差異、這輪踩過的坑）
 
 ## Out of scope
 

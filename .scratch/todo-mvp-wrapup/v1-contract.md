@@ -13,6 +13,8 @@ backend 實作、frontend 依賴、devops 驗證的共同介面，先定好避�
 | POST | `/add` | 是 | 否 | 新增 todo，`user_id` = 當前登入者 |
 | POST | `/status/<int:todo_id>` | 是 | 否 | 循環切換該 todo 狀態（必須是自己的 todo，否則 404/403） |
 | GET | `/admin` | 是 | 是 | 非 admin 存取回 403；列所有使用者與各自的 todo |
+| POST | `/edit/<int:todo_id>` | 是 | 否 | v2：更新該 todo 的 `title`（沿用 `validate_title()`）；必須是自己的 todo，否則 404；成功/失敗都導向 `/` 並 flash |
+| POST | `/delete/<int:todo_id>` | 是 | 否 | v2：刪除該 todo；必須是自己的，否則 404；成功導向 `/` 並 flash「已刪除」 |
 
 ## Session keys
 

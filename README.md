@@ -103,6 +103,8 @@
 
 admin 帳號在部署時用環境變數指定，不能自己升級自己；登入後可以看到所有帳號跟各自的待辦，一眼掌握全站狀態。
 
+本地 demo container 的登入資訊：帳號 `admin`／密碼 `admin_password_123`（即 `docker run` 時傳入的 `ADMIN_USERNAME`／`ADMIN_PASSWORD`，僅供本機 demo）。
+
 </td>
 <td width="50%">
   <img src="assets/admin.png" alt="Admin 後台，並排顯示 admin 與 demo_user 兩個帳號各自的待辦" width="100%" />
@@ -183,8 +185,8 @@ bash scripts/verify_deploy.sh
 - [x] Admin 後台（帳號清單 + 各帳號 todo）
 - [x] 三態狀態、loading 過渡、雙層輸入驗證
 - [x] Docker 端對端驗證腳本
+- [x] 編輯／刪除 todo（v2 CRUD 補完：`POST /edit/<id>`、`POST /delete/<id>` + inline 編輯表單、`confirm()` 刪除）
 - [ ] 期限（due date）、標籤 — 曾經在候選清單上，目前沒有排入範圍
-- [ ] 刪除 todo — 明確排除，不在計畫內
 - [ ] 正式 WSGI server（目前仍是 Flask dev server）— 明確決議維持現狀，見 [Ticket 01](.scratch/todo-mvp-wrapup/issues/01-mvp-hardening-scope.md)
 
 <!-- LICENSE -->
