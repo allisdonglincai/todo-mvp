@@ -42,8 +42,11 @@ roster), no hero, no marketing copy.
 - `--color-paper-3`    oklch(91% 0.020 95)   deeper hover
 - `--color-ink`        oklch(20% 0.012 250)
 - `--color-ink-2`      oklch(40% 0.014 250)  secondary text
-- `--color-ink-3`      oklch(56% 0.012 250)  muted / timestamps
-- `--color-rule`       oklch(88% 0.018 95)
+- `--color-ink-3`      oklch(50% 0.012 250)  muted / timestamps (5.50:1 on paper)
+- `--color-rule`       oklch(88% 0.018 95)   hairlines, decorative only
+- `--color-rule-strong` oklch(64% 0.020 95)  form-control + popover borders (3.08:1, WCAG 1.4.11)
+- `--color-link`       oklch(50% 0.18 235)   body-text links (4.98:1 on paper)
+- `--color-link-hover` oklch(40% 0.16 235)   hover goes *darker*, never lighter
 - `--color-accent`     oklch(86% 0.18 95)    pear — primary action
 - `--color-accent-2`   oklch(66% 0.18 235)   sky-cyan — links / in-progress
 - `--color-accent-3`   oklch(68% 0.24 18)    coral — danger / one pop moment
@@ -82,7 +85,14 @@ roster), no hero, no marketing copy.
 - Silent success — saving a todo, cycling its status: no toast, the UI
   update *is* the confirmation
 - Flash messages (from the Flask backend) render as rounded pills instead of
-  a bare list — errors in coral, confirmations in mint
+  a bare list — errors in coral, confirmations in mint. Every `flash()` call
+  in `app.py` **must** pass a category (`"error"` / `"success"`); Flask's
+  uncategorised default renders neutral grey on purpose, so a miscategorised
+  error can never be painted as a success.
+- "Silent success" applies to the *inline* state change (a status pill
+  cycling, a title saving in place). Actions with no visible result on the
+  page — creating or deleting a tag, deleting a row — do flash, because
+  otherwise nothing confirms them.
 - Hover delay 800ms / focus delay 0ms on anything with a tooltip (none yet)
 - Optimistic-feel button press: the primary button's coloured edge shrinks on
   `:active`, like a physical push
@@ -104,7 +114,9 @@ roster), no hero, no marketing copy.
   behind the header only, so it never competes with task content.
 
 ## What pages MUST share
-- The wordmark + bubble mark, identical placement, identical pulse.
+- The wordmark, identical placement. As of the logo drop this is the
+  `logo.webp` mark in `static/img/` (`.wordmark-logo`), not the original
+  pure-CSS `.bubble-mark`; the CSS breathing pulse retired with it.
 - The accent palette and its semantic mapping (pear = primary action, cyan =
   in-progress / links, coral = danger / the one pop moment, mint = done /
   success).
@@ -132,10 +144,33 @@ roster), no hero, no marketing copy.
   reduced-motion-aware repeating line). Auth pages use a quiet one-line
   variant instead of the full marquee, since a sign-in screen shouldn't move.
 
+## Hard floors (added after the v3 tags/menu drop)
+These are not style preferences; the v3 features shipped without them and it
+cost two P0 bugs.
+- **Pointer targets ≥ 44px** on every interactive control, including icon-only
+  ones. Use a transparent hit area (`width/height` + negative `margin`) when
+  the visual footprint must stay small.
+- **Never build a confirm dialog by interpolating user content into a JS
+  string literal.** Entity decoding happens before JS parsing, so an
+  apostrophe in a todo title silently removes the dialog. Put the message in
+  `data-confirm` and read it via `dataset`.
+- **Popovers must not live inside a transformed ancestor.** `transform`
+  creates a stacking context and will bury the popover behind later siblings.
+- **`z-index` comes from the scale** (`--z-base` / `--z-raised` / `--z-sticky`
+  / `--z-modal`). No literals.
+- **No global `overflow-x: clip`.** It converts "the user can scroll to the
+  button" into "the button does not exist". Contain overflow where it is
+  produced.
+- **Don't declare `role="menu"`** unless the full APG keyboard contract
+  (roving focus, arrow keys, Home/End) is implemented. A plain popover of
+  `<button>`s with `aria-expanded` is honest and fully accessible.
+
 ## Enrichment
-Tier-A pure-CSS floating bubbles — flat circles at 6–10% opacity in the
-accent hues, positioned behind the header and (on auth pages) behind the
-card. No illustration library, no SVG import, no photography — the app has
+Tier-A pure-CSS floating bubbles — flat circles in the accent hues,
+positioned behind the header and (on auth pages) behind the card. Shipped at
+`opacity: 0.5` against the 6–10% written here; this is a known open gap, not
+a licence to raise it further (at 0.5 they compete with the wordmark on
+narrow viewports). No illustration library, no SVG import, no photography — the app has
 no product shots to show.
 
 ## Exports

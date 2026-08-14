@@ -13,6 +13,7 @@
   --color-ink-2:      oklch(40% 0.014 250);
   --color-ink-3:      oklch(50% 0.012 250);
   --color-rule:       oklch(88% 0.018 95);
+  --color-rule-strong:oklch(64% 0.020 95);  /* 3.08:1 on paper — WCAG 1.4.11 */
 
   --color-accent:       oklch(86% 0.18 95);   /* pear — primary */
   --color-accent-deep:  oklch(72% 0.19 92);   /* pear button edge */
@@ -25,6 +26,9 @@
   --color-lavender:      oklch(74% 0.16 305); /* admin accent, sparing */
 
   --color-focus:      oklch(60% 0.18 235);
+
+  --color-link:       oklch(50% 0.18 235);  /* 4.98:1 on paper */
+  --color-link-hover: oklch(40% 0.16 235);  /* hover goes darker, not lighter */
 
   --color-danger:      oklch(52% 0.20 18);
   --color-danger-bg:   oklch(93% 0.035 18);

@@ -12,10 +12,10 @@
   box-sizing: border-box;
 }
 
-html,
-body {
-  overflow-x: clip;
-}
+/* No global overflow-x clip: it turned "the user can scroll to the button"
+   into "the button does not exist". Overflow is contained where it belongs
+   (.marquee, .site-header) so a future layout bug surfaces as a scrollbar
+   instead of an unreachable control. */
 
 html {
   -webkit-text-size-adjust: 100%;
@@ -50,13 +50,13 @@ svg {
 }
 
 a {
-  color: var(--color-accent-2-deep);
+  color: var(--color-link);
   text-decoration-thickness: 1.5px;
   text-underline-offset: 0.15em;
 }
 
 a:hover {
-  color: var(--color-accent-2);
+  color: var(--color-link-hover);
 }
 
 h1,
@@ -282,8 +282,7 @@ p {
   animation: marquee 30s linear infinite;
   font-family: var(--font-mono);
   font-size: var(--text-xs);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
   color: var(--color-ink-3);
 }
 
@@ -304,7 +303,7 @@ p {
 .footer-line {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
-  letter-spacing: 0.06em;
+  letter-spacing: 0.02em;
   color: var(--color-ink-3);
   text-align: center;
 }
@@ -351,7 +350,7 @@ p {
 }
 
 .btn:focus-visible {
-  outline: 3px solid color-mix(in oklch, var(--btn-edge) 70%, var(--color-focus));
+  outline: 3px solid var(--color-focus);
   outline-offset: 3px;
 }
 
@@ -450,7 +449,7 @@ input[type=password] {
   padding: 0.75rem 1rem;
   font-size: var(--text-base);
   font-family: var(--font-body);
-  border: 1.5px solid var(--color-rule);
+  border: 1.5px solid var(--color-rule-strong);
   border-radius: var(--radius-input);
   background: var(--color-paper);
   color: var(--color-ink);
@@ -464,8 +463,7 @@ input[type=password]::placeholder {
 
 input[type=text]:focus,
 input[type=password]:focus {
-  outline: none;
-  border-color: var(--color-accent-2);
+  border-color: var(--color-accent-2-deep);
   background: var(--color-paper);
 }
 
@@ -537,10 +535,16 @@ input[type=password]:focus {
   color: var(--color-danger);
 }
 
-.flash-success,
-.flash-message {
+.flash-success {
   background: var(--color-success-bg);
   color: var(--color-success);
+}
+
+/* Flask's uncategorised default. Neutral on purpose: an uncategorised
+   message must never be able to render an error as a success. */
+.flash-message {
+  background: var(--color-paper-2);
+  color: var(--color-ink-2);
 }
 
 /* ============ loading overlay — three-bubble pulse ============ */
@@ -653,6 +657,18 @@ input[type=password]:focus {
   flex-shrink: 0;
 }
 
+@media (max-width: 40rem) {
+  .add-form,
+  .edit-form:not([hidden]) {
+    flex-wrap: wrap;
+  }
+
+  .add-form input,
+  .edit-form input {
+    flex: 1 1 100%;
+  }
+}
+
 /* ============ todo list ============ */
 .todo-list {
   list-style: none;
@@ -680,6 +696,18 @@ input[type=password]:focus {
     transform: translateY(-3px);
     box-shadow: var(--shadow-card-hover);
   }
+
+  /* While a row's menu is open, the hover transform would create a stacking
+     context that traps the menu behind the following card. Suppress it and
+     lift the row instead. */
+  .todo-item:has(.menu:not([hidden])):hover,
+  .todo-item.is-editing:hover {
+    transform: none;
+  }
+}
+
+.todo-item:has(.menu:not([hidden])) {
+  z-index: var(--z-raised);
 }
 
 .todo-title {
@@ -687,6 +715,15 @@ input[type=password]:focus {
   min-width: 0;
   word-break: break-word;
   font-weight: 500;
+}
+
+/* Below this the title was collapsing to a 1-char-per-line column, because
+   every other child of the row is nowrap. Give it its own line instead. */
+@media (max-width: 30rem) {
+  .todo-title {
+    flex: 1 1 100%;
+    order: -1;
+  }
 }
 
 .todo-time {
@@ -836,7 +873,6 @@ input[type=password]:focus {
   border-radius: var(--radius-card);
   padding: var(--space-lg);
   box-shadow: var(--shadow-card);
-  border-top: 3px solid var(--color-accent-2);
 }
 
 .user-card h2 {
@@ -938,19 +974,25 @@ input[type=password]:focus {
 }
 
 /* ============ v3 tags ============ */
+.add-form select,
+.edit-form select {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 12rem;
+}
+
 select {
   padding: 0.6rem 0.75rem;
   font-size: var(--text-sm);
   font-family: var(--font-body);
-  border: 1.5px solid var(--color-rule);
+  border: 1.5px solid var(--color-rule-strong);
   border-radius: var(--radius-input);
   background: var(--color-paper);
   color: var(--color-ink);
 }
 
 select:focus {
-  outline: none;
-  border-color: var(--color-accent-2);
+  border-color: var(--color-accent-2-deep);
 }
 
 .tag-manager {
@@ -959,7 +1001,7 @@ select:focus {
   flex-wrap: wrap;
   gap: var(--space-sm);
   padding: var(--space-sm) var(--space-md);
-  border: 1.5px dashed var(--color-rule);
+  border: 1.5px dashed var(--color-rule-strong);
   border-radius: var(--radius-card);
   margin-bottom: var(--space-md);
 }
@@ -974,6 +1016,9 @@ select:focus {
 .tag-chip-wrap {
   display: inline-flex;
   align-items: center;
+  gap: var(--space-2xs);
+  max-width: 100%;
+  min-width: 0;
 }
 
 .tag-chip {
@@ -988,6 +1033,17 @@ select:focus {
   color: var(--color-ink);
   text-decoration: none;
   white-space: nowrap;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The chip you are currently filtering by. */
+.tag-chip.is-active {
+  background: var(--color-accent);
+  border-color: var(--color-accent-deep);
+  box-shadow: 0 0 0 2px var(--color-accent-deep);
 }
 
 .tag-chip:hover {
@@ -995,18 +1051,29 @@ select:focus {
 }
 
 .tag-chip__delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  /* 44px pointer target without a 44px visual footprint. */
+  width: 2.75rem;
+  height: 2.75rem;
+  margin: -0.75rem -0.5rem -0.75rem -0.25rem;
   border: 0;
   background: transparent;
   color: var(--color-ink-3);
   font-size: var(--text-xs);
-  padding: var(--space-3xs) var(--space-2xs);
   border-radius: var(--radius-pill);
   cursor: pointer;
 }
 
 .tag-chip__delete:hover {
   color: var(--color-danger);
-  background: var(--color-danger-bg);
+  background: radial-gradient(
+    circle at center,
+    var(--color-danger-bg) 0 44%,
+    transparent 46%
+  );
 }
 
 .tag-add-form {
@@ -1017,8 +1084,11 @@ select:focus {
 }
 
 .tag-add-form input[type=text] {
-  width: 9rem;
-  padding: 0.4rem 0.75rem;
+  flex: 1 1 9rem;
+  width: auto;
+  min-width: 0;
+  max-width: 12rem;
+  padding: var(--space-xs) var(--space-sm);
   font-size: var(--text-sm);
 }
 
@@ -1045,8 +1115,8 @@ select:focus {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
+  width: 2.75rem;
+  height: 2.75rem;
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
@@ -1064,12 +1134,13 @@ select:focus {
   position: absolute;
   top: calc(100% + 4px);
   right: 0;
-  z-index: 20;
+  z-index: var(--z-raised);
   min-width: 8.5rem;
   padding: var(--space-2xs);
   background: var(--color-paper);
+  border: 1.5px solid var(--color-rule-strong);
   border-radius: var(--radius-input);
-  box-shadow: var(--shadow-card-hover);
+  box-shadow: 0 6px 12px -6px oklch(20% 0.012 250 / 0.32);
 }
 
 .menu form {
@@ -1081,7 +1152,8 @@ select:focus {
   align-items: center;
   gap: var(--space-xs);
   width: 100%;
-  padding: var(--space-2xs) var(--space-sm);
+  min-height: 2.75rem;
+  padding: var(--space-xs) var(--space-sm);
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
@@ -1110,6 +1182,16 @@ select:focus {
   margin: var(--space-2xs) 0;
 }
 
-.edit-form select {
-  flex-shrink: 0;
+/* .edit-form select shrink rules live with .add-form select above. */
+
+/* While a row is being edited the static title/tag would otherwise be shown
+   alongside the identical values inside the form. */
+.todo-item.is-editing > .todo-title,
+.todo-item.is-editing > .tag-chip,
+.todo-item.is-editing > .todo-time {
+  display: none;
+}
+
+.todo-item.is-editing {
+  box-shadow: var(--shadow-card), inset 0 0 0 2px var(--color-accent-2);
 }

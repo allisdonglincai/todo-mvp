@@ -168,7 +168,7 @@ def register():
                 ok, msg = False, "帳號已被使用"
 
         if not ok:
-            flash(msg)
+            flash(msg, "error")
             return render_template("register.html")
 
         get_db().execute(
@@ -176,7 +176,7 @@ def register():
             (username, generate_password_hash(password)),
         )
         get_db().commit()
-        flash("註冊成功，請登入")
+        flash("註冊成功，請登入", "success")
         return redirect(url_for("login"))
     return render_template("register.html")
 
@@ -190,7 +190,7 @@ def login():
             "SELECT * FROM users WHERE username = ?", (username,)
         ).fetchone()
         if user is None or not check_password_hash(user["password_hash"], password):
-            flash("帳號或密碼錯誤")
+            flash("帳號或密碼錯誤", "error")
             return render_template("login.html")
         session["user_id"] = user["id"]
         session["is_admin"] = bool(user["is_admin"])
@@ -248,7 +248,7 @@ def add():
     title = request.form.get("title", "")
     ok, msg = validate_title(title)
     if not ok:
-        flash(msg)
+        flash(msg, "error")
         return redirect(url_for("index"))
     db = get_db()
     tag_id = resolve_tag_id(db, request.form.get("tag_id"), session["user_id"])
@@ -273,13 +273,13 @@ def add_tag():
         if existing is not None:
             ok, msg = False, "標籤名稱重複"
     if not ok:
-        flash(msg)
+        flash(msg, "error")
         return redirect(url_for("index"))
     get_db().execute(
         "INSERT INTO tags (user_id, name) VALUES (?, ?)", (session["user_id"], name)
     )
     get_db().commit()
-    flash(f"已建立標籤「{name}」")
+    flash(f"已建立標籤「{name}」", "success")
     return redirect(url_for("index"))
 
 
@@ -296,7 +296,7 @@ def delete_tag(tag_id):
     db.execute("UPDATE todos SET tag_id = NULL WHERE tag_id = ?", (tag_id,))
     db.execute("DELETE FROM tags WHERE id = ?", (tag_id,))
     db.commit()
-    flash(f"已刪除標籤「{tag['name']}」")
+    flash(f"已刪除標籤「{tag['name']}」", "success")
     return redirect(url_for("index"))
 
 
@@ -313,7 +313,7 @@ def edit(todo_id):
     title = request.form.get("title", "")
     ok, msg = validate_title(title)
     if not ok:
-        flash(msg)
+        flash(msg, "error")
         return redirect(url_for("index"))
     raw_tag = request.form.get("tag_id")
     tag_id = resolve_tag_id(db, raw_tag, session["user_id"])
@@ -322,7 +322,7 @@ def edit(todo_id):
         (title.strip(), tag_id, todo_id),
     )
     db.commit()
-    flash("已更新")
+    flash("已更新", "success")
     return redirect(url_for("index"))
 
 
@@ -338,7 +338,7 @@ def delete(todo_id):
         abort(404)
     db.execute("DELETE FROM todos WHERE id = ?", (todo_id,))
     db.commit()
-    flash("已刪除")
+    flash("已刪除", "success")
     return redirect(url_for("index"))
 
 
