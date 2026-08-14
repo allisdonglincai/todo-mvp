@@ -441,6 +441,19 @@ def test_init_db_migrates_legacy_db(tmp_path, monkeypatch):
         ).fetchone()[0] == 0
 
 
+def test_admin_login_redirects_to_admin(client):
+    resp = login(client, os.environ["ADMIN_USERNAME"], os.environ["ADMIN_PASSWORD"])
+    assert resp.status_code == 302
+    assert resp.headers["Location"].endswith("/admin")
+
+
+def test_regular_login_redirects_to_index(client):
+    register(client)
+    resp = login(client)
+    assert resp.status_code == 302
+    assert resp.headers["Location"].endswith("/")
+
+
 def test_admin_forbidden_for_non_admin(client):
     register(client, "dave", "password123")
     login(client, "dave", "password123")
