@@ -42,6 +42,7 @@
 </div>
 {% endif %}
 
+{% include "_flash.html" %}
 <form action="/add" method="post" class="add-form">
   <label for="title" class="sr-only">新增待辦事項</label>
   <input type="text" id="title" name="title" placeholder="新增待辦事項" maxlength="200" required>

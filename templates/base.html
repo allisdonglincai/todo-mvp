@@ -73,15 +73,6 @@
     <div
       class="shell{% if not session.user_id %} shell--narrow{% elif request.endpoint == 'admin' %} shell--wide{% endif %} page-main"
     >
-      {% with messages = get_flashed_messages(with_categories=true) %} {% if
-      messages %}
-      <ul class="flash-list" role="status" aria-live="polite">
-        {% for category, message in messages %}
-        <li class="flash-{{ category }}">{{ message }}</li>
-        {% endfor %}
-      </ul>
-      {% endif %} {% endwith %}
-
       <main>{% block content %}{% endblock %}</main>
     </div>
 

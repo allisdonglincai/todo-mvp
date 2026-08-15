@@ -2,6 +2,7 @@
 {% block title %}Admin - Todo{% endblock %}
 {% block content %}
 {% set status_labels = {'pending': '待處理', 'in_progress': '進行中', 'done': '已完成'} %}
+{% include "_flash.html" %}
 <div class="page-head">
   <h1>管理後台</h1>
   <div class="page-head__meta">

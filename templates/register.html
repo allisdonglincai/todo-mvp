@@ -6,6 +6,7 @@
   <div class="auth-card">
     <h1>註冊</h1>
     <p class="auth-card__lede">建立帳號，開始整理你的待辦事項。</p>
+    {% include "_flash.html" %}
     <form action="/register" method="post">
       <div class="field">
         <label for="username">帳號</label>

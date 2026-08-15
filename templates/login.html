@@ -6,6 +6,7 @@
   <div class="auth-card">
     <h1>登入</h1>
     <p class="auth-card__lede">回來繼續你的待辦事項。</p>
+    {% include "_flash.html" %}
     <form action="/login" method="post">
       <div class="field">
         <label for="username">帳號</label>
