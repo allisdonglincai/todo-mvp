@@ -43,3 +43,4 @@ Label: wayfinder:map
 
 - 刪除 todo 功能 — 使用者已明確排除於本次練習範圍外
 - [下一步功能優先順序](issues/03-next-feature-priority.md) — 前提（在原 phase 1 範圍內繼續擴充）未成立；範圍後續改用 Ticket 20 的方式重新開啟，這個 ticket 本身仍然關閉不處理
+- **v5 shell 寬度（ticket 29）**：`≥80rem` 時 `--shell-wide: 66rem`（roster 密度桌機收益，唯一 code 是 tokens.css 一條 media query）；header 內容容器登入後恆定 40rem 不隨頁面變體、與斷點語意規則一併寫入 design.md 容器契約。兩層驗證全過（main 獨立 iframe 量測：admin 928→1056 跨 1280px、todo 恆 640、header 六組恆定），master `297f93a`。
