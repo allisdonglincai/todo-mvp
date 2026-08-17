@@ -167,11 +167,20 @@ cost two P0 bugs.
 
 ## Enrichment
 Tier-A pure-CSS floating bubbles — flat circles in the accent hues,
-positioned behind the header and (on auth pages) behind the card. Shipped at
-`opacity: 0.5` against the 6–10% written here; this is a known open gap, not
-a licence to raise it further (at 0.5 they compete with the wordmark on
-narrow viewports). No illustration library, no SVG import, no photography — the app has
-no product shots to show.
+positioned behind the header and (on auth pages) behind the card. No
+illustration library, no SVG import, no photography — the app has no product
+shots to show.
+
+Decorative-layer contract (v4 container 收斂，2026-08 拍板)：
+
+- **裝飾錨定在 shell 內容盒**：裝飾 `bubble-field` 一律錨定在該區塊的 shell
+  寬容器內（`position: absolute; inset: 0`），允許負偏移外溢、由滿版外層容器
+  （如 `.site-header`）的 `overflow: hidden` 裁切；**禁止以視窗座標（滿版
+  百分比）定位裝飾**。
+- **透明度契約值 `0.08`，全站單一**：原「shipped 0.5 vs spec 6–10%」的已知
+  缺口已收斂關閉——所有 `.bubble-field span` 統一 `opacity: 0.08`。
+- **不新增任何裝飾用斷點**：座標系統一後，泡泡與 wordmark 的碰撞在幾何上不
+  存在，無需（也不允許）為裝飾層新增 media query。
 
 ## Exports
 

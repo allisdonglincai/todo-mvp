@@ -32,12 +32,12 @@
     </div>
 
     <header class="site-header">
-      <div class="bubble-field" aria-hidden="true">
-        <span></span><span></span><span></span>
-      </div>
       <div
         class="site-header__inner shell{% if not session.user_id %} shell--narrow{% endif %}"
       >
+        <div class="bubble-field" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
         <a class="wordmark" href="{{ '/' if session.user_id else '/login' }}">
           <img
             class="wordmark-logo"
