@@ -164,6 +164,13 @@ cost two P0 bugs.
 - **Don't declare `role="menu"`** unless the full APG keyboard contract
   (roving focus, arrow keys, Home/End) is implemented. A plain popover of
   `<button>`s with `aria-expanded` is honest and fully accessible.
+- **Header 寬度恆定**：site-header 內容容器在登入後全站恆定（`--shell`
+  40rem），**不**跟隨頁面 shell 變體（admin 的 `--shell-wide` 只作用於
+  page-main）。理由：跨頁導航時 wordmark/nav 不跳位、泡泡錨點穩定；頁內
+  邊緣不對齊由滿版 header 色帶吸收。
+- **斷點必須有語意**：`≥80rem` 時 `--shell-wide: 66rem`——語意是 roster
+  密度型內容的桌機收益，屬 max-width 調整而非裝置階梯；其他 shell 檔位
+  （26/40rem）**禁止**仿照加裝置斷點。
 
 ## Enrichment
 Tier-A pure-CSS floating bubbles — flat circles in the accent hues,

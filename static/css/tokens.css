@@ -92,3 +92,10 @@
   --shell-wide:   58rem;   /* admin roster */
   --page-gutter:  clamp(1rem, 4vw, 1.5rem);
 }
+
+/* roster 密度型內容的桌機收益（design.md 斷點契約）：max-width 調整，非裝置階梯 */
+@media (min-width: 80rem) {
+  :root {
+    --shell-wide: 66rem;
+  }
+}
