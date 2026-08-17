@@ -110,31 +110,6 @@ p {
   padding-block: var(--space-xl) var(--space-3xl);
 }
 
-/* ============ bubble mark (character moment) ============ */
-.bubble-mark {
-  --size: 1.15em;
-  position: relative;
-  display: inline-block;
-  width: var(--size);
-  height: var(--size);
-  border-radius: 50%;
-  background: var(--color-accent);
-  box-shadow: inset -0.18em -0.18em 0 oklch(72% 0.19 92 / 0.55);
-  animation: bubble-breathe 4s var(--ease-in-out) infinite;
-}
-
-@keyframes bubble-breathe {
-
-  0%,
-  100% {
-    transform: scale(1);
-  }
-
-  50% {
-    transform: scale(1.08);
-  }
-}
-
 /* decorative floating bubbles — Tier-A pure CSS, purely atmospheric */
 .bubble-field {
   position: absolute;
@@ -328,7 +303,9 @@ p {
   }
 
   to {
-    transform: translateX(-50%);
+    /* 內容週期 = 一個 span + 一個 flex gap；-50% 少了半個 gap，會產生
+       每循環 8px 的可見跳動，補回 gap/2 讓位移與內容週期一致 */
+    transform: translateX(calc(-50% - (var(--space-md) / 2)));
   }
 }
 
@@ -430,26 +407,6 @@ p {
 .btn--pear {
   --btn-face: var(--color-accent);
   --btn-edge: var(--color-accent-deep);
-}
-
-.btn--cyan {
-  --btn-face: var(--color-accent-2);
-  --btn-edge: var(--color-accent-2-deep);
-  --btn-cast: oklch(60% 0.18 235 / 0.4);
-  --btn-ink: var(--color-ink);
-}
-
-.btn--coral {
-  --btn-face: var(--color-accent-3);
-  --btn-edge: var(--color-accent-3-deep);
-  --btn-cast: oklch(58% 0.22 18 / 0.4);
-  --btn-ink: var(--color-ink);
-}
-
-.btn--mint {
-  --btn-face: var(--color-mint);
-  --btn-edge: var(--color-mint-deep);
-  --btn-cast: oklch(64% 0.16 150 / 0.4);
 }
 
 .btn--sm {
@@ -971,10 +928,6 @@ input[type=password]:focus {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 150ms !important;
-  }
-
-  .bubble-mark {
-    animation: none;
   }
 
   .bubble-field span {
