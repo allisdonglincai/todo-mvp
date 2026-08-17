@@ -1,7 +1,7 @@
 Type: task
 Mode: execution
 Lane: frontend
-Status: open
+Status: resolved
 
 **規格權威來源：[v4-container-return.md](../v4-container-return.md)**（§2 最終規格、§4 驗收、§7 coordinator 裁決——斷言 3 已改寫、overflow scope 已釘死，與 §2/§4 原文不一致處以 §7 為準）。視覺依據 artifact：https://claude.ai/code/artifact/8902ea72-871e-47f4-85b8-3d353fbeca1d
 
@@ -34,4 +34,26 @@ Status: open
 
 ## Answer
 
-（未填）
+**完成，/goal 第 1 次 try 全過。** 先 `git fetch && git merge --ff-only origin/master` 快轉 `66c2fac → 17fed74`（ff 成功）後動工。Commit `3585465`（分支 `allisdonglincai/frontend-lane-tags`），改動 `templates/base.html` + `static/css/app.css` + `design.md`（+50/−9），app.py 未動。
+
+實作對照 Task：
+1. `base.html`：`.bubble-field` 移為 `.site-header__inner` 第一個子元素，其餘結構與 shell 修飾詞 Jinja 判斷不動。
+2. `app.css`（依 §7 裁決 2 scope）：新增 `.site-header .bubble-field { overflow: visible }` + header 專屬 `span:nth-child(1..3)` 座標（cyan `calc(100%−16px)/−22px`、coral `46%/10px`、mint 見下）；共用 `.bubble-field span` 只改 `opacity: 0.08`；`.wordmark, .site-nav { position:relative; z-index: var(--z-raised) }`；auth-wrap 組座標/overflow:hidden 不動、`.site-header` overflow:hidden 保留。
+3. **座標微調（裁決 1）**：mint 由草案 `-104px` 外移至 **`left:-140px`**（top:38% 不變）。幾何保證：圓心 x = −140+65 = −75，含 drift 極值 +8px 後 −67 < −65(=r)，圓右緣恆在 inner 內容盒左緣外，任何寬度/高度下都不可能與 wordmark 矩形相交；寬螢幕時 mint 完整浮在 shell 左側留白（左外溢氛圍保留），窄螢幕由 `.site-header` overflow:hidden 裁切。cyan/coral 沿用草案（實測餘裕足夠，見下）。
+4. `design.md`：Enrichment 段改寫——「0.5 vs 6–10% 已知缺口」段落移除，寫入三條契約（shell 內容盒錨定＋禁止視窗座標定位裝飾、0.08 全站單一值、零新裝飾斷點）。
+
+驗證（§4 七項，皆真實執行；docker :5001 + orca-ide eval，測畢已清）：
+1. 結構：`.site-header__inner > .bubble-field` 非 null、`.site-header > .bubble-field` 為 null ✅
+2. 透明度：header 3 顆 + /login 兩組共 6 顆 span computed opacity 全 `0.08` ✅
+3. 無碰撞（圓形幾何，rect 反算圓心/半徑，圓-矩形最近點距離判定）：登入後 320/375/768/893 + 登出 /login（`shell--narrow` 確認為 true）320/375/640，共 7 寬度 × 動畫運行中取樣一次 + animation:none 靜態取樣一次 = 14 組、每組 3 顆泡泡全部 `d−r ≥ +22px`（最小餘裕 mint 動畫中 +22，cyan 最大 +515）✅（寬度用同源 iframe 指定 width 量 contentDocument，沿用 coordinator 慣例）
+4. 零新斷點：app.css 無 `56rem`，media query 僅既有 7 個（40/30/26/24rem、hover、min-40rem、reduced-motion），本輪未新增任何 ✅
+5. z 軸：wordmark 中心 `elementFromPoint` 回傳 wordmark 本身 ✅
+6. auth-wrap 不回歸：`/login` 的 `.auth-wrap > .bubble-field` 存在、overflow:hidden、三顆座標仍為共用百分比規則（computed 35.5/497/414px = 6%/84%/70%），僅 opacity 改 0.08 ✅
+7. design.md 對帳：三條契約已寫入、缺口段落已改寫為已收斂 ✅
+
+另：merge 後全部 templates 重跑 Jinja2 解析 + html.parser feed 通過（含 v3 之後他人改動的 index.html/_flash.html）。
+
+
+### Main 第二層驗證（獨立重跑，非採信自我陳述）
+
+main 自起 container（:5001）獨立驗證：結構（inner 錨定、header 直下無 bubble-field）、6 顆 span opacity 全 0.08、auth-wrap 組保留 overflow:hidden 與原座標、wordmark 中心 elementFromPoint 命中 wordmark；核心斷言 3 以圓-矩形最近點距離獨立實作，7 寬度（/ 320/375/768/893 + /login 320/375/640）× 動畫中/靜態各一次共 14 組，最小餘裕 +29px 全過；app.css 無 56rem、design.md 三條契約在。diff 只動 base.html/app.css/design.md。已 merge + push（master `e61df0b`）。
