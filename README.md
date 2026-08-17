@@ -1,7 +1,7 @@
 <br />
 <div align="center">
   <h1 align="center">
-    <a href="https://github.com/allisdonglincai/todo-mvp"><img src="assets/logo.webp" alt="Todo App" width="64" valign="middle" /></a> Todo App <sup>v1 MVP</sup>
+    <a href="https://github.com/allisdonglincai/todo-mvp"><img src="assets/logo.webp" alt="Todo App" width="64" valign="middle" /></a> Todo App <sup>v3</sup>
   </h1>
 </div>
 
@@ -50,7 +50,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-一個刻意保持小巧的 Todo app：註冊、登入、per-user 的待辦清單、三態狀態循環、admin 後台。伺服器端渲染的 Flask + SQLite，單一 Dockerfile 部署，沒有前端框架、沒有 ORM。
+一個刻意保持小巧的 Todo app：註冊、登入、per-user 的待辦清單（新增／編輯／刪除）、三態狀態循環、標籤分類與篩選、admin 後台。伺服器端渲染的 Flask + SQLite，單一 Dockerfile 部署，沒有前端框架、沒有 ORM。
 
 這個 repo 真正的目的不是 Todo app 本身，而是拿它當載體，練習「在時間盒內用結構化方式與 agent 協作交付」——用 [wayfinder](.scratch/todo-mvp-wrapup/map.md) 拆解決策、用 4 個獨立的 Claude Code session（1 個 coordinator + backend / frontend / devops 三個 worker）平行開發，細節見 [Architecture](#architecture)。
 
@@ -87,13 +87,13 @@
 <tr>
 <td width="50%" valign="middle">
 
-### Per-user 三態待辦
+### Per-user 待辦與標籤
 
-新增、查詢都只看得到自己的資料；狀態不是打勾了事，是「未處理 → 進行中 → 已完成」點一下循環一格，三色一眼分辨。
+新增、查詢都只看得到自己的資料；狀態是「待處理 → 進行中 → 已完成」點一下循環一格，三色一眼分辨。每列的 ⋮ 選單收著編輯（標題＋標籤一次改）與 `confirm()` 二次確認的刪除；標籤自行建立管理、todo 單選指派，點徽章即篩選。
 
 </td>
 <td width="50%">
-  <img src="assets/todos.png" alt="待辦清單頁，四筆待辦分別是已完成、進行中、待處理三種狀態" width="100%" />
+  <img src="assets/todos.png" alt="待辦清單頁：標籤管理列（工作、生活兩個 chips）、帶標籤下拉的新增表單，四筆待辦分別是已完成、進行中、待處理三種狀態，各列有標籤徽章與 ⋮ 選單" width="100%" />
 </td>
 </tr>
 <tr>
@@ -107,7 +107,7 @@ admin 帳號在部署時用環境變數指定，不能自己升級自己；登�
 
 </td>
 <td width="50%">
-  <img src="assets/admin.png" alt="Admin 後台，並排顯示 admin 與 demo_user 兩個帳號各自的待辦" width="100%" />
+  <img src="assets/admin.png" alt="Admin 後台，並排顯示 admin 與 demo_user 兩個帳號卡片，demo_user 卡內列出四筆待辦與其狀態徽章" width="100%" />
 </td>
 </tr>
 </table>
@@ -186,7 +186,8 @@ bash scripts/verify_deploy.sh
 - [x] 三態狀態、loading 過渡、雙層輸入驗證
 - [x] Docker 端對端驗證腳本
 - [x] 編輯／刪除 todo（v2 CRUD 補完：`POST /edit/<id>`、`POST /delete/<id>` + inline 編輯表單、`confirm()` 刪除）
-- [ ] 期限（due date）、標籤 — 曾經在候選清單上，目前沒有排入範圍
+- [x] 標籤（v3：per-user `tags` 表單選指派、`?tag_id=` 篩選、⋮ dropdown、管理列）
+- [ ] 期限（due date）— 曾經在候選清單上，目前沒有排入範圍
 - [ ] 正式 WSGI server（目前仍是 Flask dev server）— 明確決議維持現狀，見 [Ticket 01](.scratch/todo-mvp-wrapup/issues/01-mvp-hardening-scope.md)
 
 <!-- LICENSE -->
