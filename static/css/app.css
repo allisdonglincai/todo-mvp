@@ -147,7 +147,7 @@ p {
 .bubble-field span {
   position: absolute;
   border-radius: 50%;
-  opacity: 0.5;
+  opacity: 0.08; /* design.md 契約值，全站單一 */
   animation: bubble-drift 14s var(--ease-in-out) infinite;
 }
 
@@ -190,6 +190,38 @@ p {
   50% {
     transform: translateY(-14px) translateX(8px);
   }
+}
+
+/* header 那組 bubble-field 錨定在 __inner（shell 內容盒），負偏移外溢、
+   由滿版 .site-header 的 overflow:hidden 裁切（design.md 裝飾層契約）。
+   auth-wrap 那組沿用上方共用座標與 overflow:hidden，不受此 scope 影響。 */
+.site-header .bubble-field {
+  overflow: visible;
+}
+
+.site-header .bubble-field span:nth-child(1) {
+  /* cyan，右外溢 */
+  left: calc(100% - 16px);
+  top: -22px;
+}
+
+.site-header .bubble-field span:nth-child(2) {
+  /* coral，wordmark 與 nav 間空檔 */
+  left: 46%;
+  top: 10px;
+}
+
+.site-header .bubble-field span:nth-child(3) {
+  /* mint，左外溢。left ≤ -138px 使圓右緣（含 drift +8px）恆在內容盒左緣外，
+     幾何上不可能碰 wordmark（v4 §7 裁決 1） */
+  left: -140px;
+  top: 38%;
+}
+
+.wordmark,
+.site-nav {
+  position: relative;
+  z-index: var(--z-raised);
 }
 
 /* ============ header / nav (N7 slab, rounded variant) ============ */
